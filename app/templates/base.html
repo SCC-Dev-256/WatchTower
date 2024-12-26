@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AJA HELO Monitor{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}AJA HELO device monitoring and management system{% endblock %}">
+    
+    <!-- Common CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+    {% block extra_css %}{% endblock %}
+    
+    <!-- Common JavaScript -->
+    <script src="{{ url_for('static', filename='js/accessibility.js') }}" defer></script>
+    {% block extra_js %}{% endblock %}
+</head>
+<body>
+    <!-- Skip Navigation -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <!-- Header -->
+    <header role="banner">
+        <nav role="navigation" aria-label="Main navigation">
+            <ul class="nav-list">
+                <li>
+                    <a href="{{ url_for('dashboard.index') }}" 
+                       {% if request.endpoint == 'dashboard.index' %}aria-current="page"{% endif %}>
+                       Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('notifications.settings') }}"
+                       {% if request.endpoint == 'notifications.settings' %}aria-current="page"{% endif %}>
+                       Notifications
+                    </a>
+                </li>
+                <li>
+                    <a href="{{ url_for('encoders.list') }}"
+                       {% if request.endpoint == 'encoders.list' %}aria-current="page"{% endif %}>
+                       Encoders
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main id="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Status Messages -->
+    <div id="status-messages" 
+         role="status" 
+         aria-live="polite" 
+         class="visually-hidden"></div>
+
+    <!-- Footer -->
+    <footer role="contentinfo">
+        <p>&copy; {% now 'Y' %} AJA HELO Monitor. All rights reserved.</p>
+    </footer>
+</body>
+</html> 

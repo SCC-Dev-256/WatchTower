@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Notification Management - AJA HELO Monitor</title>
+    <meta name="description" content="Manage notification settings for AJA HELO devices">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
+</head>
+<body>
+    <!-- Skip Navigation Link -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
+
+    <nav role="navigation" aria-label="Main navigation">
+        <ul class="nav-list">
+            <li><a href="{{ url_for('dashboard.index') }}" aria-current="false">Dashboard</a></li>
+            <li><a href="{{ url_for('notifications.settings') }}" aria-current="true">Notifications</a></li>
+        </ul>
+    </nav>
+
+    <main id="main-content" class="notification-container">
+        <h1>Notification Management</h1>
+
+        <!-- Notification Settings -->
+        <section class="settings-panel" aria-labelledby="settings-heading">
+            <h2 id="settings-heading">Notification Settings</h2>
+            
+            <div class="notification-channels">
+                <!-- Email Settings -->
+                <div class="channel-config" role="region" aria-labelledby="email-heading">
+                    <h3 id="email-heading">Email Notifications</h3>
+                    <form id="emailSettings" 
+                          aria-label="Email notification settings"
+                          novalidate>
+                        <div class="form-group">
+                            <label for="email_recipients">
+                                Recipients
+                                <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="email_recipients"
+                                   name="email_recipients"
+                                   value="{{ settings.email_recipients }}"
+                                   aria-required="true"
+                                   aria-describedby="email-help">
+                            <span id="email-help" class="help-text">
+                                Enter email addresses separated by commas
+                            </span>
+                        </div>
+
+                        <fieldset class="severity-settings">
+                            <legend>Alert Types</legend>
+                            <div class="checkbox-group">
+                                <input type="checkbox" 
+                                       id="email_critical"
+                                       name="email_critical"
+                                       {% if settings.email_critical %}checked{% endif %}>
+                                <label for="email_critical">Critical Alerts</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" 
+                                       id="email_warnings"
+                                       name="email_warnings"
+                                       {% if settings.email_warnings %}checked{% endif %}>
+                                <label for="email_warnings">Warnings</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" 
+                                       id="email_info"
+                                       name="email_info"
+                                       {% if settings.email_info %}checked{% endif %}>
+                                <label for="email_info">Info Messages</label>
+                            </div>
+                        </fieldset>
+
+                        <div class="button-group">
+                            <button type="submit" class="primary-button">
+                                Save Email Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Telegram Settings -->
+                <div class="channel-config" role="region" aria-labelledby="telegram-heading">
+                    <h3 id="telegram-heading">Telegram Notifications</h3>
+                    <form id="telegramSettings" 
+                          aria-label="Telegram notification settings"
+                          novalidate>
+                        <div class="form-group">
+                            <label for="telegram_token">
+                                Bot Token
+                                <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input type="password" 
+                                   id="telegram_token"
+                                   name="telegram_token"
+                                   value="{{ settings.telegram_token }}"
+                                   aria-required="true">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="telegram_chat_id">
+                                Chat ID
+                                <span class="required" aria-hidden="true">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="telegram_chat_id"
+                                   name="telegram_chat_id"
+                                   value="{{ settings.telegram_chat_id }}"
+                                   aria-required="true">
+                        </div>
+
+                        <fieldset class="severity-settings">
+                            <legend>Alert Types</legend>
+                            <div class="checkbox-group">
+                                <input type="checkbox" 
+                                       id="telegram_critical"
+                                       name="telegram_critical"
+                                       {% if settings.telegram_critical %}checked{% endif %}>
+                                <label for="telegram_critical">Critical Alerts</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" 
+                                       id="telegram_warnings"
+                                       name="telegram_warnings"
+                                       {% if settings.telegram_warnings %}checked{% endif %}>
+                                <label for="telegram_warnings">Warnings</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" 
+                                       id="telegram_info"
+                                       name="telegram_info"
+                                       {% if settings.telegram_info %}checked{% endif %}>
+                                <label for="telegram_info">Info Messages</label>
+                            </div>
+                        </fieldset>
+
+                        <div class="button-group">
+                            <button type="submit" class="primary-button">
+                                Save Telegram Settings
+                            </button>
+                            <button type="button" 
+                                    class="secondary-button"
+                                    onclick="testTelegramConnection()"
+                                    aria-describedby="test-help">
+                                Test Connection
+                            </button>
+                            <span id="test-help" class="help-text">
+                                Sends a test message to verify your Telegram configuration
+                            </span>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <!-- Notification Rules -->
+        <section class="rules-panel" aria-labelledby="rules-heading">
+            <h2 id="rules-heading">Notification Rules</h2>
+            <button class="add-rule-button"
+                    onclick="addNewRule()"
+                    aria-label="Add new notification rule">
+                Add Rule
+            </button>
+
+            <div class="rules-list" role="list">
+                {% for rule in notification_rules %}
+                <div class="rule-item" 
+                     role="listitem"
+                     data-rule-id="{{ rule.id }}"
+                     aria-labelledby="rule-name-{{ rule.id }}">
+                    <div class="rule-header">
+                        <h4 id="rule-name-{{ rule.id }}" class="rule-name">
+                            {{ rule.name }}
+                        </h4>
+                        <div class="rule-actions">
+                            <button class="edit-button"
+                                    onclick="editRule('{{ rule.id }}')"
+                                    aria-label="Edit rule {{ rule.name }}">
+                                Edit
+                            </button>
+                            <button class="delete-button"
+                                    onclick="deleteRule('{{ rule.id }}')"
+                                    aria-label="Delete rule {{ rule.name }}">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                    <dl class="rule-details">
+                        <dt>Condition:</dt>
+                        <dd>{{ rule.condition }}</dd>
+                        <dt>Channels:</dt>
+                        <dd>{{ rule.channels|join(', ') }}</dd>
+                        <dt>Priority:</dt>
+                        <dd>{{ rule.priority }}</dd>
+                    </dl>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+    </main>
+
+    <!-- Status Messages -->
+    <div id="status-messages" 
+         role="status" 
+         aria-live="polite" 
+         class="visually-hidden"></div>
+
+    <!-- Modal Dialog for Rule Creation/Editing -->
+    <dialog id="ruleModal" 
+            aria-labelledby="modal-title"
+            aria-describedby="modal-description">
+        <!-- Modal content here -->
+    </dialog>
+</body>
+</html> 

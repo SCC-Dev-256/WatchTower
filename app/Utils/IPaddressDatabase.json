@@ -1,0 +1,47 @@
+#IP variables
+
+{
+  "ip_descriptions": {
+    "192.168.1.1": "Main Server Room",
+    "192.168.1.2": "Backup Server Room",
+    "192.168.1.3": "Security Office"
+  },
+  "ip_status": {
+    "192.168.1.1": {
+      "last_checked": "2024-12-10T12:00:00",
+      "status": "Healthy",
+      "error_count": 0
+    },
+    "192.168.1.2": {
+      "last_checked": "2024-12-10T11:55:00",
+      "status": "Degraded",
+      "error_count": 3
+    },
+    "192.168.1.3": {
+      "last_checked": "2024-12-10T11:50:00",
+      "status": "Offline",
+      "error_count": 7
+    }
+  },
+  "anomaly_logs": [
+    {
+      "ip": "192.168.1.2",
+      "description": "Backup Server Room",
+      "timestamp": "2024-12-10T11:57:00",
+      "anomaly_details": "Packet loss detected",
+      "severity": "Medium"
+    },
+    {
+      "ip": "192.168.1.3",
+      "description": "Security Office",
+      "timestamp": "2024-12-10T11:58:00",
+      "anomaly_details": "Connection timeout",
+      "severity": "High"
+    }
+  ],
+  "retry_attempts": 3,
+  "timeout_seconds": 5,
+  "log_directory": "logs/",
+  "anomaly_directory": "anomalies/",
+  "notification_email": "utility@scctv.org"
+}

@@ -1,0 +1,41 @@
+{
+  "dashboard": {
+    "title": "AJA HELO Encoders Dashboard",
+    "panels": [
+      {
+        "title": "Encoder Status Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(encoder_status) by (status)",
+            "legendFormat": "{{status}}"
+          }
+        ]
+      },
+      {
+        "title": "Streaming Status by Encoder",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "encoder_streaming_status",
+            "legendFormat": "{{encoder_name}}"
+          }
+        ]
+      },
+      {
+        "title": "System Resources",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "system_cpu_usage_percent",
+            "legendFormat": "CPU %"
+          },
+          {
+            "expr": "system_memory_usage_bytes",
+            "legendFormat": "Memory"
+          }
+        ]
+      }
+    ]
+  }
+} 

@@ -1,0 +1,173 @@
+/* Common Component Styles with Accessibility Focus */
+:root {
+    /* Color System (WCAG 2.1 AA compliant) */
+    --color-primary: #2C5282;
+    --color-primary-hover: #2B6CB0;
+    --color-secondary: #4A5568;
+    --color-success: #2F855A;
+    --color-warning: #C05621;
+    --color-error: #C53030;
+    --color-info: #2B6CB0;
+    
+    /* Text Colors */
+    --text-primary: #1A202C;
+    --text-secondary: #4A5568;
+    --text-light: #FFFFFF;
+    
+    /* Focus States */
+    --focus-ring-color: #4299E1;
+    --focus-ring-width: 3px;
+    
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+}
+
+/* Common Layout Components */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-md);
+}
+
+.grid {
+    display: grid;
+    gap: var(--spacing-md);
+}
+
+/* Card Component */
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: var(--spacing-md);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    margin-bottom: var(--spacing-md);
+}
+
+/* Form Components */
+.form-group {
+    margin-bottom: var(--spacing-lg);
+}
+
+.form-label {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-input {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 2px solid var(--color-secondary);
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.form-input:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: 2px;
+}
+
+/* Button Components */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:focus {
+    outline: var(--focus-ring-width) solid var(--focus-ring-color);
+    outline-offset: 2px;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    color: var(--text-light);
+}
+
+.btn-secondary {
+    background-color: var(--color-secondary);
+    color: var(--text-light);
+}
+
+/* Alert Components */
+.alert {
+    padding: var(--spacing-md);
+    border-radius: 4px;
+    margin-bottom: var(--spacing-md);
+    border-left: 4px solid transparent;
+}
+
+.alert-success {
+    background-color: #F0FFF4;
+    border-left-color: var(--color-success);
+}
+
+.alert-error {
+    background-color: #FFF5F5;
+    border-left-color: var(--color-error);
+}
+
+/* Table Components */
+.table-container {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: var(--spacing-sm);
+    text-align: left;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+/* Accessibility Helpers */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+
+/* High Contrast Mode Support */
+@media (forced-colors: active) {
+    .btn,
+    .form-input,
+    .card {
+        border: 2px solid ButtonText;
+    }
+} 

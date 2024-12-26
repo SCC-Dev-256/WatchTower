@@ -1,0 +1,7 @@
+-r base.in
+
+# Development Tools
+black==23.10.1
+flake8==6.1.0
+ipython==8.15.0
+pip-tools==6.11.0

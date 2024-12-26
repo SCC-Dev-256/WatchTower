@@ -1,0 +1,14 @@
+<!-- dashboard.html -->
+<html>
+<head>
+    <title>Device Status Dashboard</title>
+</head>
+<body>
+    <h1>Device Logs</h1>
+    <ul>
+        {% for log in logs %}
+        <li>{{ log.timestamp }} - {{ log.device_id }}: {{ log.log_message }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

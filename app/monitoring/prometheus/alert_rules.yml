@@ -1,0 +1,87 @@
+groups:
+  - name: encoder_alerts
+    rules:
+      - alert: EncoderOffline
+        expr: encoder_status == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Encoder {{ $labels.encoder_name }} is offline"
+          
+      - alert: StreamingFailed
+        expr: encoder_streaming_status == 0 and encoder_status == 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Streaming failed on {{ $labels.encoder_name }}"
+          
+      - alert: HighBandwidthUsage
+        expr: encoder_bandwidth_usage_mbps > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High bandwidth usage on {{ $labels.encoder_name }}"
+          
+      - alert: EncoderErrors
+        expr: rate(encoder_errors_total[5m]) > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Increased error rate on {{ $labels.encoder_name }}"
+          
+      - alert: StorageRebootCycle
+        expr: rate(encoder_reboot_total[5m]) > 0.2
+        for: 2m
+        labels:
+          severity: critical
+          action: storage_mitigation
+        annotations:
+          summary: "Encoder {{ $labels.encoder_name }} in reboot cycle"
+          description: "Storage mitigation process initiated"
+
+      - alert: StorageDeviceFailed
+        expr: encoder_storage_status == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Storage device {{ $labels.storage_id }} failed on {{ $labels.encoder_name }}"
+
+      - alert: VideoInputLost
+        expr: encoder_video_input_status == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Video input lost on {{ $labels.encoder_name }}"
+          description: "No video signal detected on {{ $labels.input_type }}"
+
+      - alert: AudioLevelsLow
+        expr: encoder_audio_levels_db < -40
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low audio levels on {{ $labels.encoder_name }}"
+          description: "Channel {{ $labels.channel }} below threshold"
+
+      - alert: StorageSpaceLow
+        expr: encoder_recording_space_bytes / 1024 / 1024 / 1024 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low storage space on {{ $labels.encoder_name }}"
+          description: "Less than 10GB remaining"
+
+      - alert: StreamUptimeAnomaly
+        expr: rate(encoder_stream_uptime_seconds[5m]) < 0
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Stream interruption on {{ $labels.encoder_name }}"

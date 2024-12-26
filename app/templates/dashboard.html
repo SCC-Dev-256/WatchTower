@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AJA HELO Monitor{% endblock %}
+{% block meta_description %}Real-time monitoring dashboard for AJA HELO encoders and device status{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Status Overview Section -->
+    <section class="status-overview" aria-labelledby="status-heading">
+        <h2 id="status-heading" class="section-title">System Status</h2>
+        <div class="status-grid" role="region" aria-label="Key metrics">
+            <div class="status-item" role="status">
+                <h3 id="total-encoders">Total Encoders</h3>
+                <span class="metric" aria-labelledby="total-encoders">{{ metrics.total }}</span>
+            </div>
+            <div class="status-item" role="status">
+                <h3 id="online-encoders">Online Encoders</h3>
+                <span class="metric" aria-labelledby="online-encoders">{{ metrics.online }}</span>
+            </div>
+            <div class="status-item {% if metrics.errors > 0 %}alert{% endif %}" role="alert" aria-atomic="true">
+                <h3 id="active-errors">Active Errors</h3>
+                <span class="metric" aria-labelledby="active-errors">{{ metrics.errors }}</span>
+            </div>
+            <div class="status-item" role="status">
+                <h3 id="storage-health">Storage Health</h3>
+                <span class="metric" aria-labelledby="storage-health">
+                    <span class="visually-hidden">Storage health is </span>
+                    {{ metrics.storage_health }}%
+                </span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Performance Metrics Section -->
+    <section class="performance-metrics" aria-labelledby="performance-heading">
+        <h2 id="performance-heading" class="section-title">Performance Metrics</h2>
+        <div class="graphs-container">
+            <div class="graph-wrapper">
+                <div id="streamingGraph" 
+                     role="img" 
+                     aria-label="Streaming status graph"
+                     class="graph"
+                     tabindex="0"></div>
+                <div class="graph-controls">
+                    <button class="btn btn-secondary" onclick="toggleGraphDetail('streaming')" aria-expanded="false">
+                        Show Details
+                    </button>
+                </div>
+            </div>
+            <div class="graph-wrapper">
+                <div id="bandwidthGraph" 
+                     role="img" 
+                     aria-label="Bandwidth usage graph"
+                     class="graph"
+                     tabindex="0"></div>
+                <div class="graph-controls">
+                    <button class="btn btn-secondary" onclick="toggleGraphDetail('bandwidth')" aria-expanded="false">
+                        Show Details
+                    </button>
+                </div>
+            </div>
+            <div class="graph-wrapper">
+                <div id="storageGraph" 
+                     role="img" 
+                     aria-label="Storage usage graph"
+                     class="graph"
+                     tabindex="0"></div>
+                <div class="graph-controls">
+                    <button class="btn btn-secondary" onclick="toggleGraphDetail('storage')" aria-expanded="false">
+                        Show Details
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Encoder Control Section -->
+    <section class="encoder-controls" aria-labelledby="controls-heading">
+        <h2 id="controls-heading" class="section-title">Encoder Controls</h2>
+        <div class="control-panel">
+            <div class="encoder-selector">
+                <label for="encoderSelect" class="form-label">Select Encoder:</label>
+                <select id="encoderSelect" class="form-select" aria-label="Select encoder to control">
+                    {% for encoder in encoders %}
+                    <option value="{{ encoder.id }}">{{ encoder.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="control-buttons" role="group" aria-label="Encoder control actions">
+                <button onclick="controlEncoder('start_streaming')" 
+                        class="btn btn-success"
+                        aria-label="Start streaming for selected encoder">
+                    Start Stream
+                </button>
+                <button onclick="controlEncoder('stop_streaming')" 
+                        class="btn btn-danger"
+                        aria-label="Stop streaming for selected encoder">
+                    Stop Stream
+                </button>
+                <button onclick="controlEncoder('start_recording')" 
+                        class="btn btn-success"
+                        aria-label="Start recording for selected encoder">
+                    Start Record
+                </button>
+                <button onclick="controlEncoder('stop_recording')" 
+                        class="btn btn-danger"
+                        aria-label="Stop recording for selected encoder">
+                    Stop Record
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Alert Management Section -->
+    <section class="alert-management" aria-labelledby="alerts-heading">
+        <h2 id="alerts-heading" class="section-title">Alert Management</h2>
+        <div class="alert-controls">
+            <div class="alert-filters" role="search">
+                <div class="form-group">
+                    <label for="severityFilter" class="form-label">Filter by Severity:</label>
+                    <select id="severityFilter" class="form-select">
+                        <option value="">All Severities</option>
+                        <option value="critical">Critical</option>
+                        <option value="warning">Warning</option>
+                        <option value="info">Info</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="encoderFilter" class="form-label">Search Encoder:</label>
+                    <input type="text" 
+                           id="encoderFilter" 
+                           class="form-input"
+                           placeholder="Enter encoder name..."
+                           aria-label="Filter alerts by encoder name">
+                </div>
+            </div>
+            
+            <div class="alert-actions">
+                <button onclick="acknowledgeAllAlerts()" 
+                        class="btn btn-primary"
+                        aria-label="Acknowledge all visible alerts">
+                    Acknowledge All
+                </button>
+                <button onclick="exportAlerts()" 
+                        class="btn btn-secondary"
+                        aria-label="Export alerts to CSV">
+                    Export Alerts
+                </button>
+            </div>
+        </div>
+
+        <div class="alert-list" role="log" aria-label="Alert history">
+            {% for alert in alerts %}
+            <div class="alert-item {{ alert.severity }}" 
+                 role="article"
+                 aria-labelledby="alert-{{ alert.id }}-title">
+                <div class="alert-header">
+                    <span id="alert-{{ alert.id }}-title" class="alert-title">
+                        {{ alert.encoder_name }} - {{ alert.severity|title }}
+                    </span>
+                    <span class="alert-timestamp">
+                        <span class="visually-hidden">Occurred at </span>
+                        {{ alert.timestamp|format_datetime }}
+                    </span>
+                </div>
+                <p class="alert-message">{{ alert.description }}</p>
+                <div class="alert-actions">
+                    <button onclick="acknowledgeAlert('{{ alert.id }}')"
+                            class="btn btn-sm btn-primary"
+                            aria-label="Acknowledge alert for {{ alert.encoder_name }}">
+                        Acknowledge
+                    </button>
+                    <button onclick="viewAlertDetails('{{ alert.id }}')"
+                            class="btn btn-sm btn-secondary"
+                            aria-label="View details for alert on {{ alert.encoder_name }}">
+                        Details
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+
+<!-- Alert Details Modal -->
+<dialog id="alertDetailsModal" 
+        aria-labelledby="modal-title" 
+        aria-describedby="modal-description">
+    <div class="modal-content">
+        <h3 id="modal-title">Alert Details</h3>
+        <div id="modal-description"></div>
+        <button onclick="closeAlertDetails()"
+                class="btn btn-primary"
+                aria-label="Close alert details">
+            Close
+        </button>
+    </div>
+</dialog>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %} 
