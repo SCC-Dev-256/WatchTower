@@ -184,7 +184,7 @@ if __name__ == "__main__":
 
     # Verify environment variables
     print("GITHUB_USERNAME:", os.getenv('GITHUB_USERNAME'))
-    print("GITHUB_TOKEN:", os.getenv('GITHUB_TOKEN'))
+    print(f"Using GITHUB_TOKEN: {GITHUB_TOKEN[:15]}...{GITHUB_TOKEN[-4:]}")
     print("REPO_NAME:", os.getenv('REPO_NAME'))
 
     logger.debug(f"Using GitHub token: {os.getenv('GITHUB_TOKEN')}")
