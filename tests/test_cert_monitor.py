@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import ssl
 from unittest.mock import Mock, patch, MagicMock
 from app.monitoring.cert_monitor import CertificateMonitor, CertificateInfo
-from app.core.error_handling.recovery import CertificateErrorRecovery
+from app.core.error_handling.decorators import unified_error_handler
 
 @pytest.fixture
 def app():
@@ -21,7 +21,7 @@ def app():
 def cert_monitor(app):
     """CertificateMonitor instance with mocked dependencies"""
     monitor = CertificateMonitor(app)
-    monitor.error_recovery = Mock(spec=CertificateErrorRecovery)
+    monitor.unified_error_handler = Mock(spec=unified_error_handler)
     return monitor
 
 class TestCertificateMonitor:
@@ -79,13 +79,13 @@ class TestCertificateMonitor:
             mock_ssl.side_effect = error
             
             # Configure error recovery mock
-            cert_monitor.error_recovery.with_retry.return_value = Mock(side_effect=error)
+            cert_monitor.unified_error_handler.with_retry.return_value = Mock(side_effect=error)
             
             with pytest.raises(type(error)):
                 cert_monitor.check_cert_expiry('example.com')
             
             # Verify retry attempts
-            assert cert_monitor.error_recovery.fallback_attempts.get('certificate_check', [])
+            assert cert_monitor.unified_error_handler.fallback_attempts.get('certificate_check', [])
 
     def test_verify_cert_chain_valid(self, cert_monitor):
         """Test successful certificate chain validation"""

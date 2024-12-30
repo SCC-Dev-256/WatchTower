@@ -10,10 +10,11 @@ from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
 from app.core.helo.helo_commands import (
     start_streaming, stop_streaming, verify_streaming, verify_recording
 )
-from app.core.error_handling.recovery import error_recovery
+from app.core.error_handling.decorators import unified_error_handler
 from app.core.error_handling.Bitrate.optimize_bitrate import BitrateOptimizer
 from app.core.error_handling.storage_handler import StorageHandler
 from app.core.error_handling.restart_monitor import RestartMonitor
+from app.core.error_handling.decorators import unified_error_handler
 
 class CentralErrorManager:
     """Central Error Management System"""
@@ -99,7 +100,7 @@ class CentralErrorManager:
         elif error_type == HeloPoolErrorType.INFINITE_RESTART:
             await self._monitor_restart_loop(encoder_id)
 
-    @error_recovery("Optimize Bitrate")
+    @unified_error_handler("Optimize Bitrate", include_analysis=True)
     async def _optimize_bitrate(self, encoder_id: str):
         """Optimize bitrate to handle bandwidth issues"""
         self.logger.info(f"Optimizing bitrate for encoder {encoder_id}")
