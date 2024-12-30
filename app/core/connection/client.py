@@ -2,7 +2,7 @@ from typing import Optional, Dict, Any
 from .pool_manager import PoolManager
 from app.core.cablecast_IN_DEVELOPMENT.cablecast_constants import CablecastEndpoints
 from app.core.error_handling import APIError, handle_errors
-from app.core.error_handling.logging import ErrorLogger
+from app.core.error_handling.ErrorLogging import ErrorLogger
 import json
 
 class CablecastPooledClient:

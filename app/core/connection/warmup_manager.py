@@ -1,11 +1,10 @@
 from typing import Dict, Set, Optional, Callable, List
 import asyncio
 import logging
-import helo_pool_manager
 from datetime import datetime, timedelta
 from prometheus_client import Counter, Gauge, Histogram
 from app.core.connection.helo_pool_manager import HeloPoolManager
-from app.core.error_handling.enhanced_metrics import EnhancedErrorMetrics
+from app.core.error_handling.ErrorLogging import ErrorMetrics
 
 class ConnectionWarmupMetrics:
     """Metrics for connection warmup monitoring"""
@@ -19,7 +18,7 @@ class HeloWarmupManager:
     
     def __init__(self, 
                  pool_manager: HeloPoolManager,
-                 metrics: EnhancedErrorMetrics,
+                 metrics: ErrorMetrics,
                  max_warm_connections: int = 3,
                  warmup_interval: int = 300,  # 5 minutes
                  preemptive_warmup_schedule: Optional[Dict[str, List[int]]] = None):

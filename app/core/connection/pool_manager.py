@@ -2,7 +2,7 @@ from typing import Dict, Optional
 import aiohttp
 from contextlib import asynccontextmanager
 from app.core.error_handling import APIError
-from app.core.error_handling.logging import ErrorLogger
+from app.core.error_handling.ErrorLogging import ErrorLogger
 import asyncio
 from prometheus_client import Gauge, Counter
 import logging

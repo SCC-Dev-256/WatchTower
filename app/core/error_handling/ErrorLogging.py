@@ -292,3 +292,39 @@ class ErrorLogger:
             error_type='state_change',
             severity='info'
         )
+
+
+    def log_enhanced_error(self,
+                          error_type: str,
+                          service: str,
+                          resolution_strategy: str,
+                          resolution_time: float) -> None:
+        """Log error with detailed context and update enhanced metrics"""
+        logger = self.loggers.get('system')
+        logger.error(
+            f"Error occurred in service {service}",
+            extra={
+                'error_type': error_type,
+                'service': service,
+                'resolution_strategy': resolution_strategy,
+                'resolution_time': resolution_time
+            }
+        )
+        
+        # Update metrics
+        self.metrics.error_counter.labels(error_type=error_type, service=service).inc()
+        self.metrics.error_resolution_time.labels(resolution_strategy=resolution_strategy).observe(resolution_time)
+
+    def log_error_pattern_change(self, error_type: str, details: Dict[str, Any]) -> None:
+        """Log significant changes in error patterns"""
+        logger = self.loggers.get('system')
+        logger.info(
+            f"Significant change in error pattern for {error_type}",
+            extra={
+                'error_type': error_type,
+                'details': details
+            }
+        )
+        
+        # Update pattern change metric
+        self.metrics.error_pattern_changes.labels(error_type=error_type).inc()

@@ -15,6 +15,7 @@ from app.core.error_handling.Bitrate.optimize_bitrate import BitrateOptimizer
 from app.core.error_handling.storage_handler import StorageHandler
 from app.core.error_handling.restart_monitor import RestartMonitor
 from app.core.error_handling.decorators import unified_error_handler
+from app.core.error_handling.ErrorLogging import ErrorLogger, ErrorMetrics
 
 class CentralErrorManager:
     """Central Error Management System"""
@@ -24,18 +25,11 @@ class CentralErrorManager:
         self.error_analyzer = ErrorAnalyzer(app)
         self.error_tracker = ErrorTracker(app)
         self.monitoring_handler = MonitoringErrorHandler(app)
-        self.logger = logging.getLogger(__name__)
+        self.logger = ErrorLogger(app)
         self.bitrate_optimizer = BitrateOptimizer()
         self.storage_handler = StorageHandler()
         self.restart_monitor = RestartMonitor()
-        
-        # Unified metrics
-        self.metrics = {
-            'total_errors': Counter('total_errors', 'Total errors by type', ['error_type', 'source']),
-            'error_duration': Histogram('error_duration', 'Error duration until resolution'),
-            'active_errors': Gauge('active_errors', 'Currently active errors', ['severity']),
-            'restart_count': Counter('restart_count', 'Number of restarts detected', ['encoder_id'])
-        }
+        self.metrics = ErrorMetrics()
 
     async def process_error(self, 
                           error: Exception, 

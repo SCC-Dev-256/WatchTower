@@ -1,9 +1,9 @@
 from typing import List
-import logging
+from app.core.error_handling.ErrorLogging import ErrorLogger
 
 class StorageHandler:
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
+        self.logger = ErrorLogger()
         self.storage_types = {
             'SD': 'SD Card Record Path',
             'USB': 'USB Record Path', 

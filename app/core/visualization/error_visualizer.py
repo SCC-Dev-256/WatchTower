@@ -1,11 +1,11 @@
 from typing import Dict, List, Optional
 import plotly.graph_objects as go
-from app.core.error_handling.enhanced_metrics import EnhancedErrorMetrics
+from app.core.error_handling.ErrorLogging import ErrorMetrics
 
 class ErrorVisualizer:
     """Base error visualization capabilities"""
     
-    def __init__(self, metrics: EnhancedErrorMetrics):
+    def __init__(self, metrics: ErrorMetrics):
         self.metrics = metrics
 
     async def create_error_timeline(self, encoder_id: str, time_range: str) -> Dict:
