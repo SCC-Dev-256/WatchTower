@@ -32,6 +32,13 @@ from collections import defaultdict
 CONFIG_FILE = "config.json"
 BASE_URL = "/logdata?format=csv&fields=seq+tmmsec+level+msg"
 
+# Set up structured logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s - %(ip_description)s - %(anomaly_type)s'
+)
+
 # Load configuration from file
 def load_config():
     with open(CONFIG_FILE, 'r') as file:
@@ -204,6 +211,13 @@ def detect_bandwidth_issues(log_data, ip_description):
     bandwidth_keywords = ["bandwidth error", "network congestion"]
     for line in log_data.splitlines():
         if any(keyword in line.lower() for keyword in bandwidth_keywords):
+            logger.warning(
+                f"Bandwidth issue detected: {line}",
+                extra={
+                    'ip_description': ip_description,
+                    'anomaly_type': 'Bandwidth Issue'
+                }
+            )
             anomalies["Warning"]["details"].append(f"Bandwidth issue detected: {line}")
             anomalies["Warning"]["count"] += 1
             anomalies["Warning"]["location"].append(ip_description)
@@ -216,6 +230,13 @@ def detect_missing_stream_key(log_data, ip_description):
     stream_key_keywords = ["missing stream key", "authentication failed"]
     for line in log_data.splitlines():
         if any(keyword in line.lower() for keyword in stream_key_keywords):
+            logger.warning(
+                f"Stream key issue detected: {line}",
+                extra={
+                    'ip_description': ip_description,
+                    'anomaly_type': 'Stream Key Issue'
+                }
+            )
             anomalies["Warning"]["details"].append(f"Stream key issue detected: {line}")
             anomalies["Warning"]["count"] += 1
             anomalies["Warning"]["location"].append(ip_description)
@@ -232,6 +253,13 @@ def detect_storage_restart_pattern(log_data, ip_description):
     if len(log_lines) <= 10:  # Threshold for limited log entries
         # Check for reset keywords in the limited log entries
         if any(keyword in line.lower() for line in log_lines for keyword in restart_keywords):
+            logger.critical(
+                "Storage corrupt reboot cycle detected.",
+                extra={
+                    'ip_description': ip_description,
+                    'anomaly_type': 'Storage Reboot Cycle'
+                }
+            )
             anomalies["Critical"]["details"].append("Storage corrupt reboot cycle detected.")
             anomalies["Critical"]["count"] += 1
             anomalies["Critical"]["location"].append(ip_description)

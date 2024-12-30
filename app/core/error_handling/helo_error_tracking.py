@@ -57,10 +57,13 @@ class HeloErrorTracker:
             else ErrorType.STREAM_CONFIG.value
         )
         
+        error_code = "E001" if isinstance(error, EncoderError) else "E002"
+        
         return {
             'timestamp': datetime.utcnow(),
             'encoder_id': encoder_id,
             'error_type': error_type,
+            'error_code': error_code,
             'message': str(error),
             'context': context,
             'recovery_attempts': self.recovery_attempts[encoder_id].get(error_type, 0)

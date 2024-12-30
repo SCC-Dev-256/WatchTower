@@ -6,6 +6,7 @@ from app.monitoring.error_analysis import ErrorAnalyzer
 from app.monitoring.error_tracking import ErrorTracker
 from app.core.error_handling.monitoring_handler import MonitoringErrorHandler
 from app.core.error_handling.error_types import ErrorType
+from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
 
 class CentralErrorManager:
     """Central Error Management System"""
@@ -66,10 +67,18 @@ class CentralErrorManager:
         }
 
     async def _handle_helo_error(self, error_entry: Dict, analysis: Dict):
-        """Reference to HeloPoolErrorHandler"""
-        # Reference to existing HeloPoolErrorHandler
-        # Lines 27-134 in helo_pool_error_handler.py
-        pass
+        """Handle HELO-specific errors"""
+        encoder_id = error_entry['context'].get('encoder_id')
+        error_type = error_entry['error_type']
+        
+        # Implement specific recovery strategies based on error type
+        if error_type == HeloPoolErrorType.TEMPERATURE_WARNING:
+            # Example: Adjust device settings
+            await self._adjust_device_settings(encoder_id, 'cooling')
+        elif error_type == HeloPoolErrorType.SYNC_LOSS:
+            # Example: Attempt to resync
+            await self._attempt_resync(encoder_id)
+        # Add more error handling strategies as needed
 
     def _update_metrics(self, error_entry: Dict, analysis: Dict):
         """Update unified metrics"""

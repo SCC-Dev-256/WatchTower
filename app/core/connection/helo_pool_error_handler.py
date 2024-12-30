@@ -1,10 +1,13 @@
 from enum import Enum
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Any
 from datetime import datetime
 import logging
 import random
 import asyncio
 from prometheus_client import Counter, Gauge, Histogram
+from app.core.error_handling.central_error_manager import CentralErrorManager
+
+logger = logging.getLogger(__name__)
 
 class HeloPoolErrorType(Enum):
     """HELO-specific error types"""
@@ -29,7 +32,8 @@ class HeloPoolErrorMetrics:
 class HeloPoolErrorHandler:
     """Handles HELO-specific errors and recovery"""
     
-    def __init__(self, logger: Optional[logging.Logger] = None):
+    def __init__(self, central_error_manager: CentralErrorManager, logger: Optional[logging.Logger] = None):
+        self.central_error_manager = central_error_manager
         self.logger = logger or logging.getLogger(__name__)
         self.metrics = HeloPoolErrorMetrics()
         self._error_history: Dict[str, List[Dict]] = {}
@@ -39,34 +43,27 @@ class HeloPoolErrorHandler:
                          error_type: HeloPoolErrorType, 
                          encoder_id: str, 
                          error_details: Optional[Dict] = None) -> Dict:
-        """Handle HELO-specific errors with recovery strategies"""
-        
-        self.metrics.error_counter.labels(error_type.value, encoder_id).inc()
-        self.metrics.error_state.labels(encoder_id).set(1)
-        
-        error_entry = {
-            'timestamp': datetime.now(),
-            'type': error_type.value,
-            'details': error_details,
-            'encoder_id': encoder_id
+        """Handle HELO-specific errors with detailed logging and recovery attempts"""
+        self.logger.error(
+            f"Handling error for encoder {encoder_id}",
+            extra={
+                'encoder_id': encoder_id,
+                'error_type': error_type.value,
+                'details': error_details
+            }
+        )
+
+        # Delegate error processing to CentralErrorManager
+        error_context = {
+            'encoder_id': encoder_id,
+            'details': error_details
         }
-        
-        self._error_history.setdefault(encoder_id, []).append(error_entry)
-        
-        recovery_start = datetime.now()
-        recovery_result = await self._execute_recovery_strategy(error_type, encoder_id, error_details)
-        
-        recovery_time = (datetime.now() - recovery_start).total_seconds()
-        self.metrics.recovery_time.observe(recovery_time)
-        
-        if recovery_result['success']:
-            self.metrics.error_state.labels(encoder_id).set(0)
-            self._recovery_attempts[encoder_id] = 0
-        else:
-            self._recovery_attempts[encoder_id] = self._recovery_attempts.get(encoder_id, 0) + 1
-            self.metrics.consecutive_errors.labels(error_type.value).inc()
-            
-        return recovery_result
+        return await self.central_error_manager.process_error(
+            Exception(f"HELO error: {error_type.value}"),
+            source='helo',
+            context=error_context,
+            error_type=error_type
+        )
 
     async def _execute_recovery_strategy(self, 
                                       error_type: HeloPoolErrorType, 
@@ -100,38 +97,73 @@ class HeloPoolErrorHandler:
     async def _handle_connection_loss(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle connection loss with automatic reconnection"""
         self.logger.warning(f"Connection lost to HELO encoder {encoder_id}")
-        # Implementation of connection recovery logic
-        return {'success': True, 'action': 'reconnected'}
+        try:
+            # Attempt to reconnect
+            await self._reconnect_device(encoder_id)
+            return {'success': True, 'action': 'reconnected'}
+        except Exception as e:
+            self.logger.error(f"Failed to reconnect encoder {encoder_id}: {str(e)}")
+            return {'success': False, 'action': 'reconnection_failed'}
 
     async def _handle_stream_failure(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle stream failures with automatic restart"""
         self.logger.error(f"Stream failure on HELO encoder {encoder_id}")
-        # Implementation of stream recovery logic
-        return {'success': True, 'action': 'stream_restarted'}
+        try:
+            # Restart streaming
+            await self._start_streaming(encoder_id)
+            return {'success': True, 'action': 'stream_restarted'}
+        except Exception as e:
+            self.logger.error(f"Failed to restart stream for encoder {encoder_id}: {str(e)}")
+            return {'success': False, 'action': 'stream_restart_failed'}
 
     async def _handle_resource_usage(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle high resource usage warnings"""
         self.logger.warning(f"High resource usage on HELO encoder {encoder_id}")
-        # Implementation of resource optimization logic
-        return {'success': True, 'action': 'resources_optimized'}
+        try:
+            # Adjust resource settings
+            await self._optimize_resources(encoder_id)
+            return {'success': True, 'action': 'resources_optimized'}
+        except Exception as e:
+            self.logger.error(f"Failed to optimize resources for encoder {encoder_id}: {str(e)}")
+            return {'success': False, 'action': 'resource_optimization_failed'}
 
     async def _handle_encoding_error(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle encoding errors with profile adjustment"""
         self.logger.error(f"Encoding error on HELO encoder {encoder_id}")
-        # Implementation of encoding recovery logic
-        return {'success': True, 'action': 'encoding_adjusted'}
+        try:
+            # Adjust encoding settings
+            await self._adjust_encoding(encoder_id)
+            return {'success': True, 'action': 'encoding_adjusted'}
+        except Exception as e:
+            self.logger.error(f"Failed to adjust encoding for encoder {encoder_id}: {str(e)}")
+            return {'success': False, 'action': 'encoding_adjustment_failed'}
 
     async def _handle_temperature_warning(self, encoder_id: str, details: Optional[Dict]) -> Dict:
-        """Handle temperature warnings"""
+        """Handle temperature warnings by checking and adjusting device settings"""
         self.logger.warning(f"Temperature warning on HELO encoder {encoder_id}")
-        # Implementation of temperature management logic
-        return {'success': True, 'action': 'temperature_managed'}
+        try:
+            # Check and manage temperature
+            temperature = await self._get_device_param(encoder_id, 'eParamID_Temperature')
+            if temperature > self.temperature_threshold:
+                await self._adjust_device_settings(encoder_id, 'cooling')
+            return {'success': True, 'action': 'temperature_managed'}
+        except Exception as e:
+            self.logger.error(f"Failed to manage temperature for encoder {encoder_id}: {str(e)}")
+            return {'success': False, 'action': 'temperature_management_failed'}
 
     async def _handle_sync_loss(self, encoder_id: str, details: Optional[Dict]) -> Dict:
-        """Handle sync loss with resync attempt"""
-        self.logger.error(f"Sync loss on HELO encoder {encoder_id}")
-        # Implementation of sync recovery logic
-        return {'success': True, 'action': 'resynced'}
+        """Handle sync loss by attempting to restart streaming or recording"""
+        self.logger.warning(f"Sync loss detected on HELO encoder {encoder_id}")
+        
+        try:
+            # Verify current streaming state
+            is_streaming = await self._verify_streaming(encoder_id)
+            if not is_streaming:
+                await self._start_streaming(encoder_id)
+            return {'success': True, 'action': 'sync_restored'}
+        except Exception as e:
+            self.logger.error(f"Failed to restore sync for encoder {encoder_id}: {str(e)}")
+            return {'success': False, 'action': 'sync_restoration_failed'}
 
     async def _handle_buffer_overflow(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle buffer overflow with rate adjustment"""

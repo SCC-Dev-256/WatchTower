@@ -90,6 +90,8 @@ class GitHubUploader:
         except Exception as e:
             logger.error(f"Repository setup failed: {e}", exc_info=True)
             return False
+        finally:
+            logger.debug("Finished create_and_push process")
 
     def create_repo(self) -> bool:
         """Create GitHub repository with retry logic"""
@@ -112,11 +114,14 @@ class GitHubUploader:
                 response.raise_for_status()
                 return True
             except requests.exceptions.RequestException as e:
-                logger.warning(f"Attempt {attempt + 1} failed: {e}", exc_info=True)
+                logger.warning(f"Attempt {attempt + 1} failed during repository creation: {e}. Repo: {self.github_config.repo_name}, User: {self.github_config.username}", exc_info=True)
                 if response.status_code == 422:  # Repository exists
+                    logger.info("Repository already exists, proceeding with push.")
                     return True
                 if attempt < self.api_config.max_retries - 1:
+                    logger.info(f"Retrying in {self.api_config.retry_delay} seconds...")
                     time.sleep(self.api_config.retry_delay)
+        logger.error("Failed to create repository after multiple attempts.")
         return False
 
     def push_code(self) -> bool:
@@ -126,11 +131,14 @@ class GitHubUploader:
             os.chdir(self.github_config.local_path)
             ssh_key_path = os.path.expanduser(os.getenv('SSH_KEY_PATH', '~/.ssh/id_ed25519'))
             os.environ['GIT_SSH_COMMAND'] = f'ssh -i "{ssh_key_path}"'
+           
 
             self._run_git_command(['git', 'init'])
             self._run_git_command(['git', 'add', '.'])
-            self._run_git_command(['git', 'commit', '-m', os.getenv('GIT_COMMIT_MESSAGE', 'Initial commit')])
 
+            # Prompt the user for a commit message
+            commit_message = input("Enter a commit message: ")
+            self._run_git_command(['git', 'commit', '-m', commit_message])
             try:
                 self._run_git_command(['git', 'remote', 'remove', 'origin'])
             except subprocess.CalledProcessError:
@@ -143,7 +151,7 @@ class GitHubUploader:
 
             return True
         except Exception as e:
-            logger.error(f"Failed to push code: {e}", exc_info=True)
+            logger.error(f"Failed to push code. Please check your network connection and SSH key configuration: {e}", exc_info=True)
             return False
 
     def _run_git_command(self, command: list) -> Optional[str]:
@@ -181,10 +189,10 @@ if __name__ == "__main__":
 
     uploader = GitHubUploader(github_config, api_config)
     uploader.create_and_push()
-
     # Verify environment variables
     print("GITHUB_USERNAME:", os.getenv('GITHUB_USERNAME'))
     print(f"Using GITHUB_TOKEN: {GITHUB_TOKEN[:15]}...{GITHUB_TOKEN[-4:]}")
     print("REPO_NAME:", os.getenv('REPO_NAME'))
 
     logger.debug(f"Using GitHub token: {os.getenv('GITHUB_TOKEN')}")
+

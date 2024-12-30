@@ -1,13 +1,12 @@
 from datetime import datetime
 from typing import Dict, Any, Optional, Union
 import logging
-import json
-from pathlib import Path
 from prometheus_client import Counter, Histogram
 from app.core.enums import EncoderStatus, StreamingState, EventType
 from app.core.security.security_logger import SecurityEventLogger
 from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
 from app.core.aja_constants import ReplicatorCommands, MediaState
+from pathlib import Path
 
 class ErrorMetrics:
     """Metrics for error tracking"""
@@ -101,12 +100,44 @@ class ErrorLogger:
         
         # Log with appropriate severity
         if severity == 'critical':
-            logger.critical(json.dumps(log_entry))
-            self.loggers['critical'].critical(json.dumps(log_entry))
+            logger.critical(
+                "A critical error occurred",
+                extra={
+                    'details': log_entry['details'],
+                    'service': log_entry['service'],
+                    'endpoint': log_entry['endpoint'],
+                    'resolution': log_entry['resolution']
+                }
+            )
+            self.loggers['critical'].critical(
+                "A critical error occurred",
+                extra={
+                    'details': log_entry['details'],
+                    'service': log_entry['service'],
+                    'endpoint': log_entry['endpoint'],
+                    'resolution': log_entry['resolution']
+                }
+            )
         elif severity == 'warning':
-            logger.warning(json.dumps(log_entry))
+            logger.warning(
+                "A warning occurred",
+                extra={
+                    'details': log_entry['details'],
+                    'service': log_entry['service'],
+                    'endpoint': log_entry['endpoint'],
+                    'resolution': log_entry['resolution']
+                }
+            )
         else:
-            logger.error(json.dumps(log_entry))
+            logger.error(
+                "An error occurred",
+                extra={
+                    'details': log_entry['details'],
+                    'service': log_entry['service'],
+                    'endpoint': log_entry['endpoint'],
+                    'resolution': log_entry['resolution']
+                }
+            )
 
     def log_security_event(self, 
                          event_type: str, 
