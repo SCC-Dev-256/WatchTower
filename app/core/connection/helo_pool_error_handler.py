@@ -6,6 +6,10 @@ import random
 import asyncio
 from prometheus_client import Counter, Gauge, Histogram
 from app.core.error_handling.central_error_manager import CentralErrorManager
+from app.core.helo.helo_commands import (
+    start_recording, stop_recording, start_streaming, stop_streaming,
+    verify_streaming, verify_recording
+)
 
 logger = logging.getLogger(__name__)
 
@@ -44,20 +48,20 @@ class HeloPoolErrorHandler:
                          encoder_id: str, 
                          error_details: Optional[Dict] = None) -> Dict:
         """Handle HELO-specific errors with detailed logging and recovery attempts"""
+        error_context = {
+            'encoder_id': encoder_id,
+            'error_type': error_type.value,
+            'date': datetime.now().strftime("%Y-%m-%d"),
+            'time': datetime.now().strftime("%H:%M:%S"),
+            'details': error_details
+        }
+        
         self.logger.error(
             f"Handling error for encoder {encoder_id}",
-            extra={
-                'encoder_id': encoder_id,
-                'error_type': error_type.value,
-                'details': error_details
-            }
+            extra=error_context
         )
 
         # Delegate error processing to CentralErrorManager
-        error_context = {
-            'encoder_id': encoder_id,
-            'details': error_details
-        }
         return await self.central_error_manager.process_error(
             Exception(f"HELO error: {error_type.value}"),
             source='helo',
@@ -98,23 +102,23 @@ class HeloPoolErrorHandler:
         """Handle connection loss with automatic reconnection"""
         self.logger.warning(f"Connection lost to HELO encoder {encoder_id}")
         try:
-            # Attempt to reconnect
-            await self._reconnect_device(encoder_id)
-            return {'success': True, 'action': 'reconnected'}
+            # Attempt to reconnect using a command from helo_commands
+            if start_streaming(f"http://{encoder_id}"):
+                return {'success': True, 'action': 'reconnected'}
         except Exception as e:
             self.logger.error(f"Failed to reconnect encoder {encoder_id}: {str(e)}")
-            return {'success': False, 'action': 'reconnection_failed'}
+        return {'success': False, 'action': 'reconnection_failed'}
 
     async def _handle_stream_failure(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle stream failures with automatic restart"""
         self.logger.error(f"Stream failure on HELO encoder {encoder_id}")
         try:
-            # Restart streaming
-            await self._start_streaming(encoder_id)
-            return {'success': True, 'action': 'stream_restarted'}
+            # Restart streaming using a command from helo_commands
+            if start_streaming(f"http://{encoder_id}"):
+                return {'success': True, 'action': 'stream_restarted'}
         except Exception as e:
             self.logger.error(f"Failed to restart stream for encoder {encoder_id}: {str(e)}")
-            return {'success': False, 'action': 'stream_restart_failed'}
+        return {'success': False, 'action': 'stream_restart_failed'}
 
     async def _handle_resource_usage(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle high resource usage warnings"""
@@ -156,14 +160,13 @@ class HeloPoolErrorHandler:
         self.logger.warning(f"Sync loss detected on HELO encoder {encoder_id}")
         
         try:
-            # Verify current streaming state
-            is_streaming = await self._verify_streaming(encoder_id)
-            if not is_streaming:
-                await self._start_streaming(encoder_id)
-            return {'success': True, 'action': 'sync_restored'}
+            # Verify current streaming state using a command from helo_commands
+            if not verify_streaming(f"http://{encoder_id}"):
+                if start_streaming(f"http://{encoder_id}"):
+                    return {'success': True, 'action': 'sync_restored'}
         except Exception as e:
             self.logger.error(f"Failed to restore sync for encoder {encoder_id}: {str(e)}")
-            return {'success': False, 'action': 'sync_restoration_failed'}
+        return {'success': False, 'action': 'sync_restoration_failed'}
 
     async def _handle_buffer_overflow(self, encoder_id: str, details: Optional[Dict]) -> Dict:
         """Handle buffer overflow with rate adjustment"""

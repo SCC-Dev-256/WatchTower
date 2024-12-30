@@ -40,7 +40,7 @@ from flask_caching import Cache
 cache = Cache()
 
 from app.config import get_config
-from app.monitoring.metrics import setup_metrics
+from app.core.monitoring.metrics import setup_metrics
 
 from io import StringIO, BytesIO
 

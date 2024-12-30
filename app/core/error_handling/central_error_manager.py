@@ -7,6 +7,9 @@ from app.monitoring.error_tracking import ErrorTracker
 from app.core.error_handling.monitoring_handler import MonitoringErrorHandler
 from app.core.error_handling.error_types import ErrorType
 from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
+from app.core.helo.helo_commands import (
+    start_streaming, stop_streaming, verify_streaming, verify_recording
+)
 
 class CentralErrorManager:
     """Central Error Management System"""
@@ -76,8 +79,10 @@ class CentralErrorManager:
             # Example: Adjust device settings
             await self._adjust_device_settings(encoder_id, 'cooling')
         elif error_type == HeloPoolErrorType.SYNC_LOSS:
-            # Example: Attempt to resync
-            await self._attempt_resync(encoder_id)
+            # Example: Attempt to resync using a command from helo_commands
+            if not verify_streaming(f"http://{encoder_id}"):
+                if start_streaming(f"http://{encoder_id}"):
+                    self.logger.info(f"Sync restored for encoder {encoder_id}")
         # Add more error handling strategies as needed
 
     def _update_metrics(self, error_entry: Dict, analysis: Dict):
