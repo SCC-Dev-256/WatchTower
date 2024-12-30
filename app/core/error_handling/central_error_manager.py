@@ -1,5 +1,5 @@
 from typing import Dict, Optional, List
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 from prometheus_client import Counter, Gauge, Histogram
 from app.monitoring.error_analysis import ErrorAnalyzer
@@ -10,6 +10,10 @@ from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
 from app.core.helo.helo_commands import (
     start_streaming, stop_streaming, verify_streaming, verify_recording
 )
+from app.core.error_handling.recovery import error_recovery
+from app.core.error_handling.Bitrate.optimize_bitrate import BitrateOptimizer
+from app.core.error_handling.storage_handler import StorageHandler
+from app.core.error_handling.restart_monitor import RestartMonitor
 
 class CentralErrorManager:
     """Central Error Management System"""
@@ -20,12 +24,16 @@ class CentralErrorManager:
         self.error_tracker = ErrorTracker(app)
         self.monitoring_handler = MonitoringErrorHandler(app)
         self.logger = logging.getLogger(__name__)
+        self.bitrate_optimizer = BitrateOptimizer()
+        self.storage_handler = StorageHandler()
+        self.restart_monitor = RestartMonitor()
         
         # Unified metrics
         self.metrics = {
             'total_errors': Counter('total_errors', 'Total errors by type', ['error_type', 'source']),
             'error_duration': Histogram('error_duration', 'Error duration until resolution'),
-            'active_errors': Gauge('active_errors', 'Currently active errors', ['severity'])
+            'active_errors': Gauge('active_errors', 'Currently active errors', ['severity']),
+            'restart_count': Counter('restart_count', 'Number of restarts detected', ['encoder_id'])
         }
 
     async def process_error(self, 
@@ -81,9 +89,55 @@ class CentralErrorManager:
         elif error_type == HeloPoolErrorType.SYNC_LOSS:
             # Example: Attempt to resync using a command from helo_commands
             if not verify_streaming(f"http://{encoder_id}"):
+                stop_streaming(f"http://{encoder_id}")
                 if start_streaming(f"http://{encoder_id}"):
                     self.logger.info(f"Sync restored for encoder {encoder_id}")
-        # Add more error handling strategies as needed
+        elif error_type == HeloPoolErrorType.BANDWIDTH_ISSUE:
+            await self._optimize_bitrate(encoder_id)
+        elif error_type == HeloPoolErrorType.CORRUPTED_STORAGE:
+            await self._handle_corrupted_storage(encoder_id)
+        elif error_type == HeloPoolErrorType.INFINITE_RESTART:
+            await self._monitor_restart_loop(encoder_id)
+
+    @error_recovery("Optimize Bitrate")
+    async def _optimize_bitrate(self, encoder_id: str):
+        """Optimize bitrate to handle bandwidth issues"""
+        self.logger.info(f"Optimizing bitrate for encoder {encoder_id}")
+        
+        # Retrieve current bitrate from device parameters
+        current_bitrate = await self._get_device_param(encoder_id, 'Video Bit Rate')
+        
+        # Use BitrateOptimizer
+        optimized_bitrate, status = self.bitrate_optimizer.optimize_bitrate()
+        
+        self.logger.info(f"Bitrate optimization: {status}")
+
+        if optimized_bitrate != current_bitrate:
+            await self._set_device_param(encoder_id, 'Video Bit Rate', optimized_bitrate)
+            self.logger.info(f"Bitrate adjusted to {optimized_bitrate} for encoder {encoder_id}")
+
+    async def _handle_corrupted_storage(self, encoder_id: str):
+        """Handle corrupted storage errors"""
+        self.logger.info(f"Handling corrupted storage for encoder {encoder_id}")
+        
+        # Use StorageHandler
+        storage_paths = self.storage_handler.get_storage_paths_from_config(encoder_id)
+        
+        for path in storage_paths:
+            await self.storage_handler.dismount_storage(encoder_id, path)
+
+    async def _monitor_restart_loop(self, encoder_id: str):
+        """Monitor and handle infinite restart loops by checking log patterns"""
+        self.logger.info(f"Monitoring restart loop for encoder {encoder_id}")
+        
+        # Use RestartMonitor
+        await self.restart_monitor.monitor_restart_loop(encoder_id)
+
+    async def _take_preventive_action(self, encoder_id: str):
+        """Take preventive action to stop restart loop"""
+        # Placeholder logic for preventive action
+        # This could involve resetting certain parameters or alerting an administrator
+        pass
 
     def _update_metrics(self, error_entry: Dict, analysis: Dict):
         """Update unified metrics"""
