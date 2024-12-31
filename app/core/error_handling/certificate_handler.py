@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Dict, Optional
-from .exceptions import APIError
-from .handlers import ErrorHandler
+from app.core.error_handling.errors.exceptions import APIError
+from app.core.error_handling.handlers import ErrorHandler
 
 class CertificateErrorHandler(ErrorHandler):
     """Specialized handler for certificate-related errors"""
