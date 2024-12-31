@@ -1,5 +1,0 @@
--r base.in
-
-# Production-specific requirements
-gunicorn==21.2.0
-psycopg2-binary==2.9.9  # For Linux

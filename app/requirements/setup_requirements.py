@@ -1,11 +1,17 @@
 # setup_requirements.py
-import os
 import subprocess
 from pathlib import Path
 
+def read_existing_requirements():
+    requirements_path = Path('app/requirements/files/requirements.in')
+    if requirements_path.exists():
+        return requirements_path.read_text()
+    return None
+
 def create_requirements_files():
     # Create requirements directory if it doesn't exist
-    Path('requirements').mkdir(exist_ok=True)
+    requirements_dir = Path('app/requirements/files')
+    requirements_dir.mkdir(exist_ok=True)
     
     # Base requirements content
     base_content = """# Core dependencies
@@ -43,23 +49,32 @@ pytest-mock==3.11.0
 
 # Production-specific requirements
 gunicorn==21.2.0
-psycopg2-binary==2.9.9  # For Linux
+psycopg2-binary==2.9.9  # Use binary to avoid pg_config issues
 """
 
-    # Write files
-    Path('requirements').write_text(base_content)
+    requirements_file = requirements_dir / 'requirements.in'
+    existing_content = read_existing_requirements()
+
+    if existing_content:
+        if existing_content.strip() != base_content.strip():
+            print("Updating existing requirements.in with new content...")
+            requirements_file.write_text(base_content)
+        else:
+            print("Requirements file already up to date.")
+    else:
+        print("Creating new requirements.in file...")
+        requirements_file.write_text(base_content)
 
 def compile_requirements():
     # Ensure pip-tools is installed
     subprocess.run(['pip', 'install', 'pip-tools'], check=True)
     
     # Compile requirements
-    for req_type in ['base', 'dev', 'prod']:
-        subprocess.run([
-            'pip-compile',
-            f'requirements/{req_type}.in',
-            f'--output-file=requirements/{req_type}.txt'
-        ], check=True)
+    subprocess.run([
+        'pip-compile',
+        'app/requirements/files/requirements.in',
+        '--output-file=app/requirements/files/requirements.txt'
+    ], check=True)
 
 def main():
     print("Setting up requirements files...")
@@ -68,8 +83,7 @@ def main():
     compile_requirements()
     print("\nRequirements setup complete!")
     print("You can now use:")
-    print("pip-sync requirements/base.txt  # for production")
-
+    print("pip-sync app/requirements/files/requirements.txt  # for all environments")
 
 if __name__ == '__main__':
     main()
