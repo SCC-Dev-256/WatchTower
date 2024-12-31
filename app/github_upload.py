@@ -7,13 +7,13 @@ import requests
 from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from app.utils.env_utils import load_env_file, get_env_variable
 
-# Load .env file and allow it to override system env variables
-if os.path.exists('.env'):
-    load_dotenv('.env', override=True)
+# Load .env file
+load_env_file()
 
 # Retrieve GITHUB_TOKEN
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GITHUB_TOKEN = get_env_variable("GITHUB_TOKEN")
 
 if GITHUB_TOKEN:
     print(f"Using GITHUB_TOKEN from .env: {GITHUB_TOKEN[:15]}...{GITHUB_TOKEN[-4:]}")
@@ -124,35 +124,53 @@ class GitHubUploader:
         logger.error("Failed to create repository after multiple attempts.")
         return False
 
-    def push_code(self) -> bool:
+    def push_code(self, commit_message, files) -> bool:
         """Push code to GitHub using SSH authentication"""
         logger.debug("Starting push_code process")
         try:
-            os.chdir(self.github_config.local_path)
-            ssh_key_path = os.path.expanduser(os.getenv('SSH_KEY_PATH', '~/.ssh/id_ed25519'))
-            os.environ['GIT_SSH_COMMAND'] = f'ssh -i "{ssh_key_path}"'
-           
-
-            self._run_git_command(['git', 'init'])
-            self._run_git_command(['git', 'add', '.'])
-
-            # Prompt the user for a commit message
-            commit_message = input("Enter a commit message: ")
-            self._run_git_command(['git', 'commit', '-m', commit_message])
-            try:
-                self._run_git_command(['git', 'remote', 'remove', 'origin'])
-            except subprocess.CalledProcessError:
-                pass
-
-            remote_url = f"git@github.com:{self.github_config.username}/{self.github_config.repo_name}.git"
-            self._run_git_command(['git', 'remote', 'add', 'origin', remote_url])
-            self._run_git_command(['git', 'branch', '-M', self.github_config.default_branch])
-            self._run_git_command(['git', 'push', '-u', 'origin', self.github_config.default_branch])
-
+            self._change_directory()
+            self._setup_ssh()
+            self._initialize_git_repo()
+            self._add_files_to_repo()
+            commit_message = self._get_commit_message()
+            self._commit_changes(commit_message)
+            self._setup_remote()
+            self._push_to_remote()
             return True
         except Exception as e:
             logger.error(f"Failed to push code. Please check your network connection and SSH key configuration: {e}", exc_info=True)
             return False
+
+    def _change_directory(self):
+        os.chdir(self.github_config.local_path)
+
+    def _setup_ssh(self):
+        ssh_key_path = os.path.expanduser(os.getenv('SSH_KEY_PATH', '~/.ssh/id_ed25519'))
+        os.environ['GIT_SSH_COMMAND'] = f'ssh -i "{ssh_key_path}"'
+
+    def _initialize_git_repo(self):
+        self._run_git_command(['git', 'init'])
+
+    def _add_files_to_repo(self):
+        self._run_git_command(['git', 'add', '.'])
+
+    def _get_commit_message(self) -> str:
+        return input("Enter a commit message: ")
+
+    def _commit_changes(self, commit_message: str):
+        self._run_git_command(['git', 'commit', '-m', commit_message])
+
+    def _setup_remote(self):
+        try:
+            self._run_git_command(['git', 'remote', 'remove', 'origin'])
+        except subprocess.CalledProcessError:
+            pass
+        remote_url = f"git@github.com:{self.github_config.username}/{self.github_config.repo_name}.git"
+        self._run_git_command(['git', 'remote', 'add', 'origin', remote_url])
+        self._run_git_command(['git', 'branch', '-M', self.github_config.default_branch])
+
+    def _push_to_remote(self):
+        self._run_git_command(['git', 'push', '-u', 'origin', self.github_config.default_branch])
 
     def _run_git_command(self, command: list) -> Optional[str]:
         """Execute git command with error handling"""
