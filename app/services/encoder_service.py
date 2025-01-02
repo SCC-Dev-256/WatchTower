@@ -1,13 +1,14 @@
 from typing import Dict, List, Optional
 from app.core.base_service import BaseService
-from app.core.error_handling.exceptions import EncoderError
-from app.database.models.encoder import HeloEncoder, EncoderMetrics
+from app.core.error_handling.errors.exceptions import EncoderError
+from app.core.database.models.encoder import HeloEncoder, EncoderMetrics
 from app.core.enums import EncoderStatus, StreamingState
-from app.database import db
+from app.core.database import db
 from datetime import datetime, timedelta
-from app.core.aja_client import AJAHELOClient
-from app.core.aja_parameters import AJAParameterManager
-from app.core.aja_constants import AJAStreamParams
+from app.core.aja.aja_client import AJAHELOClient
+from app.core.aja.aja_parameters import AJAParameterManager
+from app.core.aja.aja_constants import AJAStreamParams
+from app.core.error_handling import handle_errors
 
 class EncoderService(BaseService):
     """Encoder management service"""
@@ -16,6 +17,7 @@ class EncoderService(BaseService):
         self.param_manager = AJAParameterManager()
         self._clients = {}  # Cache of AJA clients
 
+    @handle_errors()
     async def _op_get_encoder(self, encoder_id: str) -> Dict:
         """Get encoder details"""
         encoder = await HeloEncoder.query.get(encoder_id)
@@ -26,11 +28,13 @@ class EncoderService(BaseService):
             )
         return encoder.to_dict()
 
+    @handle_errors()
     async def _op_list_encoders(self) -> List[Dict]:
         """List all encoders"""
         encoders = await HeloEncoder.query.all()
         return [encoder.to_dict() for encoder in encoders]
 
+    @handle_errors()
     async def _op_create_encoder(self, data: Dict) -> Dict:
         """Create new encoder"""
         await self._validate_params(data, ['name', 'ip_address', 'port'])
