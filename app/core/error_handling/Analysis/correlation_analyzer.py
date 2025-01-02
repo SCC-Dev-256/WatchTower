@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from app.core.config.parameter_config import ParameterConfig
 from app.core.helo.helo_params import HeloParameters
 
-class ErrorCorrelationAnalyzer:
+class ErrorAnalyzer:
     """Advanced error correlation analysis"""
     
     def __init__(self, app=None):

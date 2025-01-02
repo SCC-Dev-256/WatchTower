@@ -4,7 +4,7 @@ from collections import defaultdict
 import re
 from typing import Dict, List, Optional
 from flask import current_app
-from app.core.aja_remediation_service import AJARemediationService
+from app.core.aja.aja_remediation_service import AJARemediationService
 
 class ErrorAnalyzer:
     def __init__(self, app):

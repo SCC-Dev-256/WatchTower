@@ -1,22 +1,26 @@
-from typing import Dict, Any, Optional
-from pydantic import BaseModel, Field
-from datetime import timedelta
+import os
+from dotenv import load_dotenv
 
-class ServiceConfig(BaseModel):
-    """Base configuration for services"""
-    retry_attempts: int = Field(default=3, ge=1)
-    retry_delay: float = Field(default=1.0, ge=0)
-    timeout: float = Field(default=5.0, ge=0)
-    cache_ttl: Optional[int] = Field(default=300, ge=0)
-    metrics_retention: timedelta = Field(default=timedelta(days=30))
+class Config:
+    _instance = None
 
-class EncoderConfig(ServiceConfig):
-    """Encoder-specific configuration"""
-    stream_buffer_size: int = Field(default=8192, ge=1024)
-    health_check_interval: int = Field(default=60, ge=30)
-    auto_recovery: bool = Field(default=True)
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Config, cls).__new__(cls)
+            cls._instance._load_config()
+        return cls._instance
 
-class MetricsConfig(ServiceConfig):
-    """Metrics-specific configuration"""
-    collection_interval: int = Field(default=60, ge=30)
-    batch_size: int = Field(default=100, ge=1) 
+    def _load_config(self):
+        load_dotenv()  # Load environment variables from a .env file if present
+        self.SECRET_KEY = os.getenv('SECRET_KEY', 'default_secret')
+        self.DATABASE_URL = os.getenv('DATABASE_URL', 'postgresql://user:password@localhost/dbname')
+        self.WEBHOOK_SECRET = os.getenv('WEBHOOK_SECRET', 'default_webhook_secret')
+        self.MAX_WEBSOCKET_CLIENTS = int(os.getenv('MAX_WEBSOCKET_CLIENTS', 100))
+        self.PROMETHEUS_ENABLED = os.getenv('PROMETHEUS_ENABLED', 'false').lower() == 'true'
+        # Add more configuration settings as needed
+
+    def get(self, key, default=None):
+        return getattr(self, key, default)
+
+# Usage
+config = Config() 

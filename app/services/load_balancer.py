@@ -4,7 +4,7 @@ import asyncio
 from app.core.metrics.base_metrics import BaseMetricsService
 from app.core.metrics.collector import MetricsCollector
 from app.core.error_handling import handle_errors
-from app.core.error_handling.exceptions import LoadBalancerError
+from app.core.error_handling.errors.exceptions import LoadBalancerError
 import logging
 
 class LoadBalancer(BaseMetricsService):

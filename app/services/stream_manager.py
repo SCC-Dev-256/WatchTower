@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 from app.core.base_service import BaseService
 from app.core.error_handling import handle_errors
-from app.core.error_handling.exceptions import EncoderStreamError
+from app.core.error_handling.errors.exceptions import EncoderStreamError
 
 class StreamManager(BaseService):
     def __init__(self):

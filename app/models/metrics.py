@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict
 from sqlalchemy.dialects.postgresql import JSON
-from ..database import db
+from app.core.database import db
 
 class EncoderMetrics(db.Model):
     """Consolidated encoder metrics model"""
