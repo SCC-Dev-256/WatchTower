@@ -1,9 +1,9 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Float, ForeignKey, Enum
 from sqlalchemy.orm import relationship
-from app.database import db
+from app.core.database import db
 from app.core.enums import EncoderStatus, StreamingState, EventType, RecordingFormat
-from app.database.models.mixins import TimestampMixin, MetricsMixin
+from app.core.database.models.mixins import TimestampMixin, MetricsMixin
 
 class HeloEncoder(db.Model, TimestampMixin):
     __tablename__ = 'encoders'
