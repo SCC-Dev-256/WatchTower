@@ -28,14 +28,14 @@ from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 
 from app.services.encoder_manager import EncoderManager
-from app.database.models.encoder import HeloEncoder
+from app.core.database.models.encoder import HeloEncoder
 
 from ..core.rest_API_client import AJADevice
 
 # import pandas as pd
 # import io
 
-from app.database import init_db, db
+from app.core.database import init_db, db
 from flask_caching import Cache
 cache = Cache()
 
@@ -65,6 +65,7 @@ from flask_socketio import SocketIO
 from app.services.unified_websocket_service import UnifiedWebSocketService
 from app.services.socketio_service import EnhancedSocketIOService
 from app.services.websocket_auth import WebSocketAuthenticator
+
 
 from app.models.api_key import APIKey
 
@@ -99,7 +100,7 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     jwt = JWTManager(app)
-    talisman = Talisman(app, force_https=True)
+    talisman = Talisman(app, content_security_policy=None, force_https=True)
     limiter = Limiter(app, key_func=get_remote_address)
     cache.init_app(app)
     
@@ -152,6 +153,13 @@ def create_app():
     
     # Register WebSocket authentication
     app.websocket_auth = WebSocketAuthenticator(app)
+    
+    # Initialize WebSocket services
+    unified_websocket_service = UnifiedWebSocketService(socketio)
+    enhanced_socketio_service = EnhancedSocketIOService(socketio)
+
+    unified_websocket_service.init_app(app)
+    enhanced_socketio_service.init_app(app)
     
     return app
 
@@ -456,3 +464,11 @@ def register_error_handlers(app):
     app.register_error_handler(Exception, error_handler.handle_error)
     app.register_error_handler(404, lambda e: error_handler.handle_error(e, {'type': 'not_found'}))
     app.register_error_handler(500, lambda e: error_handler.handle_error(e, {'type': 'server_error'}))
+
+# Enforce HTTPS
+Talisman(app, content_security_policy=None)
+
+# Initialize SocketIO with CORS support
+socketio = SocketIO(app, cors_allowed_origins="*")
+limiter = Limiter(app, key_func=get_remote_address)
+cache = Cache(app)
