@@ -7,7 +7,7 @@ import requests
 from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel
-from app.utils.env_utils import load_env_file, get_env_variable
+from app.Utils.env_utils import load_env_file, get_env_variable
 
 # Load .env file
 load_env_file()
