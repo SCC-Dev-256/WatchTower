@@ -55,6 +55,7 @@ from app.monitoring.error_tracking import ErrorTracker
 from app.api.health import health_bp
 
 from app.core.security.security_manager import SecurityManager
+from app.core.security.rbac import role_required
 
 from app.api.routes.encoders import encoder_bp as encoder_registry
 from app.api.discovery_routes import discovery_bp
@@ -66,8 +67,9 @@ from app.services.unified_websocket_service import UnifiedWebSocketService
 from app.services.socketio_service import EnhancedSocketIOService
 from app.services.websocket_auth import WebSocketAuthenticator
 
-
 from app.models.api_key import APIKey
+
+from app.core.logging.audit_logger import log_audit
 
 # Define rate limits
 encoder_rate_limit = "10 per minute"  # Adjust the rate as needed
@@ -213,6 +215,8 @@ def require_api_key(f):
 @app.route("/api/parameters/<param_id>", methods=["GET", "POST"])
 @require_api_key
 def get_parameter(param_id):
+    current_user = get_jwt_identity()
+    log_audit(current_user['id'], 'get_parameter', param_id, 'success')
     # Your function implementation here
     if request.method == "GET":
         return jsonify({"message": f"Getting parameter {param_id}"})
@@ -341,10 +345,9 @@ def set_parameter():
 
 @app.route('/admin', methods=['GET'])
 @jwt_required()
+@role_required('admin')
 def admin():
     current_user = get_jwt_identity()
-    if current_user != "admin":
-        return jsonify(message="Forbidden"), 403
     return jsonify(message="Admin access granted")
 
 # Initialize encoder manager
