@@ -466,9 +466,10 @@ def register_error_handlers(app):
     app.register_error_handler(500, lambda e: error_handler.handle_error(e, {'type': 'server_error'}))
 
 # Enforce HTTPS
-Talisman(app, content_security_policy=None)
+Talisman(app, content_security_policy=None, force_https=True)
 
 # Initialize SocketIO with CORS support
 socketio = SocketIO(app, cors_allowed_origins="*")
 limiter = Limiter(app, key_func=get_remote_address)
 cache = Cache(app)
+websocket_authenticator = WebSocketAuthenticator(app)
