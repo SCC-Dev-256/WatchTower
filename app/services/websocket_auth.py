@@ -1,41 +1,47 @@
-from functools import wraps
-from flask_socketio import disconnect
-from flask import current_app
+from flask_socketio import SocketIO
+from app.core.config.websocket_config import Config
 import jwt
+from jwt.exceptions import InvalidTokenError
 
 class WebSocketAuthenticator:
-    def __init__(self, app=None):
-        self.app = app
-        if app:
-            self.init_app(app)
-    
-    def init_app(self, app):
-        self.app = app
-        
-    def authenticate_socket(self, auth_token):
-        try:
-            payload = jwt.decode(
-                auth_token, 
-                self.app.config['SECRET_KEY'],
-                algorithms=['HS256']
-            )
-            return payload['sub']
-        except jwt.InvalidTokenError:
-            return None
+    """Handles authentication for WebSocket connections using JWT.
 
-def authenticated_socket(f):
-    @wraps(f)
-    def wrapped(*args, **kwargs):
-        auth_token = kwargs.get('auth_token')
-        if not auth_token:
-            disconnect()
+    Attributes:
+        socketio (SocketIO): The SocketIO instance for managing connections.
+        config (Config): The configuration instance for accessing settings.
+    """
+
+    def __init__(self, socketio: SocketIO):
+        """Initialize the WebSocketAuthenticator with the given SocketIO instance."""
+        self.socketio = socketio
+        self.config = Config()
+
+    def authenticate(self, token: str) -> bool:
+        """Authenticate WebSocket connection using JWT.
+
+        Args:
+            token (str): The JWT token provided by the client.
+
+        Returns:
+            bool: True if authentication is successful, False otherwise.
+
+        Raises:
+            InvalidTokenError: If the token is invalid or expired.
+        """
+        try:
+            payload = jwt.decode(token, self.config.SECRET_KEY, algorithms=["HS256"])
+            return True
+        except InvalidTokenError:
             return False
-            
-        authenticator = current_app.websocket_auth
-        user_id = authenticator.authenticate_socket(auth_token)
-        if not user_id:
-            disconnect()
-            return False
-            
-        return f(*args, **kwargs)
-    return wrapped 
+
+    def on_connect(self, token: str):
+        """Handle new WebSocket connection.
+
+        Args:
+            token (str): The JWT token provided by the client.
+
+        Raises:
+            ConnectionRefusedError: If authentication fails.
+        """
+        if not self.authenticate(token):
+            raise ConnectionRefusedError("Unauthorized") 

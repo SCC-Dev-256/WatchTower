@@ -5,6 +5,8 @@ import logging
 from typing import Dict, Any, Set
 from collections import defaultdict
 from app.core.logging import setup_logging
+from app.services.websocket_auth import WebSocketAuthenticator
+from app.core.config.websocket_config import Config
 
 logger = setup_logging(__name__)
 
@@ -17,6 +19,7 @@ class UnifiedWebSocketService:
         self.batch_queue: Dict[str, list] = defaultdict(list)
         self.batch_interval = 0.5  # seconds
         self.logger = setup_logging(__name__)
+        self.authenticator = WebSocketAuthenticator(socketio)
         
     def init_app(self, app):
         self.app = app
@@ -25,18 +28,9 @@ class UnifiedWebSocketService:
         
     def _register_handlers(self):
         @self.socketio.on('connect')
-        @self.security.secure_websocket
-        async def handle_connect():
-            client_id = request.sid
-            if not await self._validate_connection(client_id):
-                return False
-                
-            self.connected_clients[client_id] = {
-                'subscriptions': set(),
-                'last_activity': datetime.utcnow(),
-                'metrics': defaultdict(dict)
-            }
-            await self._send_initial_state(client_id)
+        def handle_connect():
+            token = request.args.get('token')
+            self.on_connect(token)
             
         @self.socketio.on('subscribe_encoder')
         @self.security.secure_websocket
@@ -102,3 +96,12 @@ class UnifiedWebSocketService:
         self.socketio.start_background_task(self._process_batch_queue)
         self.socketio.start_background_task(self._monitor_clients)
         self.socketio.start_background_task(self._monitor_encoders) 
+
+    def on_connect(self, token: str):
+        """Handle new WebSocket connection with token authentication."""
+        if not self.authenticator.authenticate(token):
+            disconnect()  # Disconnect unauthorized clients
+            return
+
+        # Proceed with connection setup for authorized clients
+        # ... 
