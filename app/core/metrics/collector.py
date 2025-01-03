@@ -1,6 +1,6 @@
 from typing import Dict, Optional
 from app.core.helo.helo_params import HeloDeviceParameters
-from app.core.aja_parameters import AJAParameterManager, AJAMediaState
+from app.core.aja.aja_parameters import AJAParameterManager, AJAMediaState
 import logging
 
 logger = logging.getLogger(__name__)

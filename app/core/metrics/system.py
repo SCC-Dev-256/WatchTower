@@ -1,7 +1,7 @@
 from typing import Dict, List
 from datetime import datetime
 from app.core.error_handling import handle_errors
-from app.database import db
+from app.core.database import db
 from app.models.metrics import EncoderMetrics
 from app.core.metrics.analyzer import MetricsAnalyzer
 from app.core.metrics.collector import MetricsCollector

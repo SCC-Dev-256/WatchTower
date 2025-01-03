@@ -1,10 +1,12 @@
 from functools import wraps
 from flask import request, jsonify
 from flask_jwt_extended import get_jwt_identity
-from app.core.database.models import Role, Permission
+from app.core.security.role_manager import RoleManager
 from app.core.security.security_logger import SecurityEventLogger
+from app.core.security.models import Role, Permission
 
 security_logger = SecurityEventLogger()
+role_manager = RoleManager()
 
 def roles_required(*required_roles):
     """Decorator to enforce role-based access control with multiple roles."""
@@ -28,9 +30,9 @@ def permission_required(permission):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             current_user = get_jwt_identity()
-            user_permissions = current_user.get('permissions', [])
+            user_roles = current_user.get('roles', ['guest'])
 
-            if permission not in user_permissions:
+            if not role_manager.has_permission(user_roles, permission):
                 return jsonify({"error": "Access denied"}), 403
 
             return f(*args, **kwargs)

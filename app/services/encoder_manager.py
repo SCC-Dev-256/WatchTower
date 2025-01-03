@@ -1,14 +1,14 @@
 from typing import List, Dict, Optional
-from app.database.models.encoder import HeloEncoder
+from app.core.database.models.encoder import HeloEncoder
 from app.core.error_handling import handle_errors
-from app.core.errors import EncoderError
-from app.core.error_handling.error_types import ErrorType
+from app.core.error_handling.errors.exceptions import EncoderError
+from app.core.error_handling.errors.error_types import ErrorType
 from app.core.rest_API_client import AJADevice
 from app.core.metrics.base_metrics import BaseMetricsService
-from app.core.aja_client import AJAHELOClient
-from app.core.aja_constants import ReplicatorCommands, MediaState, AJAParameters
-from app.core.aja_parameters import AJAParameterManager
-from app.core.aja_remediation_service import AJARemediationService
+from app.core.aja.aja_client import AJAHELOClient
+from app.core.aja.aja_constants import ReplicatorCommands, MediaState, AJAParameters
+from app.core.aja.aja_parameters import AJAParameterManager
+from app.core.aja.aja_remediation_service import AJARemediationService
 import asyncio
 
 class EncoderManager(BaseMetricsService):

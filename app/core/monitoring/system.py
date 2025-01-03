@@ -5,7 +5,7 @@ from prometheus_client import Counter, Gauge, Histogram
 from app.core.error_handling import handle_errors
 from app.models.metrics import EncoderMetrics
 from app.core.logging.system import LoggingSystem
-from app.database import db
+from app.core.database import db
 
 class MonitoringSystem:
     """Unified monitoring system"""

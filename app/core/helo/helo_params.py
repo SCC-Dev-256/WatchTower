@@ -1,4 +1,4 @@
-from app.core.aja_parameters import AJAParameterManager
+from app.core.aja.aja_parameters import AJAParameterManager
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional

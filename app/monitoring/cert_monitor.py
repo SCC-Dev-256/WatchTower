@@ -19,7 +19,7 @@ from cryptography.hazmat import serialization
 import threading
 import time
 from app.core.error_handling import handle_errors
-from app.core.aja_remediation_service import AJARemediationService
+from app.core.aja.aja_remediation_service import AJARemediationService
 from app.core.error_handling.handlers import ErrorHandler
 
 logger = logging.getLogger(__name__)

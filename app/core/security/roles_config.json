@@ -1,0 +1,7 @@
+{
+    "roles": {
+        "admin": ["create_user", "delete_user", "view_dashboard"],
+        "editor": ["edit_content", "view_dashboard"],
+        "viewer": ["view_dashboard"]
+    }
+} 

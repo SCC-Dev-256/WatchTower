@@ -1,6 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, String, DateTime, Boolean
-from app.database import Base
+from app.core.database import Base
 
 class APIKey(Base):
     """API Key model for authentication"""

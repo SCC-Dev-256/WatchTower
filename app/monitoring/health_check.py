@@ -1,8 +1,8 @@
 from app.core.error_handling import handle_errors
-from app.core.error_handling.exceptions import EncoderError
+from app.core.error_handling.errors.exceptions import EncoderError
 from typing import Dict, List
 import logging
-from app.core.error_handling.error_types import ErrorType
+from app.core.error_handling.errors.error_types import ErrorType
 from app.core.metrics.base_metrics import BaseMetricsService
 from datetime import datetime
 import requests
