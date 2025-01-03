@@ -1,10 +1,12 @@
 from functools import wraps
-from flask import current_app
+from flask import current_app, jsonify
 from typing import Callable, Any
+from app.core.error_handling.ErrorLogging import ErrorLogger
+from app.core.error_handling.analysis import ErrorAnalyzer
 import asyncio
 
-def unified_error_handler(operation: str, include_analysis: bool = False, max_attempts: int = 3, delay_seconds: int = 5):
-    """Unified error handling and recovery decorator"""
+def handle_errors(operation: str, error_type: str = 'api', severity: str = 'error', include_analysis: bool = False, max_attempts: int = 3, delay_seconds: int = 5):
+    """Unified error handling and recovery decorator that integrates with ErrorLogger"""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
@@ -14,22 +16,45 @@ def unified_error_handler(operation: str, include_analysis: bool = False, max_at
                     return await func(*args, **kwargs)
                 except Exception as e:
                     attempt += 1
-                    current_app.logger.warning(f"{operation} failed (attempt {attempt}): {str(e)}")
+                    error_data = {
+                        'service': operation,
+                        'error': str(e),
+                        'attempt': attempt,
+                        'context': kwargs
+                    }
+                    
+                    # Log using ErrorLogger
+                    ErrorLogger.log_error(
+                        error_data=error_data,
+                        error_type=error_type,
+                        severity=severity
+                    )
                     
                     if include_analysis:
-                        analysis = current_app.error_analyzer.analyze_error({
+                        analysis = ErrorAnalyzer.analyze_error({
                             'message': str(e),
                             'operation': operation,
                             'context': kwargs
                         })
-                        current_app.logger.info(f"Error analysis: {analysis}")
+                        current_app.error_logger.log_enhanced_error(
+                            error_type=error_type,
+                            service=operation,
+                            resolution_strategy='retry',
+                            resolution_time=delay_seconds * attempt
+                        )
                     
                     if attempt == max_attempts:
-                        current_app.logger.error(f"Recovery failed for operation: {operation} after {attempt} attempts")
+                        current_app.error_logger.log_error(
+                            error_data={
+                                **error_data,
+                                'final_attempt': True
+                            },
+                            error_type=error_type,
+                            severity='critical'
+                        )
                         raise
                     
-                    current_app.logger.info(f"Retrying operation: {operation} in {delay_seconds} seconds...")
                     await asyncio.sleep(delay_seconds)
             return None
         return wrapper
-    return decorator 
+    return decorator

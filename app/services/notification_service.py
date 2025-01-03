@@ -1,10 +1,10 @@
 from typing import Dict
 from app.core.base_service import BaseService
 from flask_socketio import SocketIO
-from app.core.error_handling import handle_errors
 from app.core.config import Config
 from app.core.error_handling.analysis.correlation_analyzer import ErrorAnalyzer
-from app.monitoring.error_analysis import MetricsAnalyzer
+from app.core.error_handling.decorators import handle_errors
+from app.services.metrics_analyzer import MetricsAnalyzer
 
 class NotificationService(BaseService):
     def __init__(self, socketio: SocketIO):

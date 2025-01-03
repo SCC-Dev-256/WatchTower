@@ -12,6 +12,10 @@ from ..services.load_balancer import LoadBalancer
 from ..services.websocket_auth import authenticated_socket
 from ..services.websocket_rate_limiter import WebSocketRateLimiter
 from ..services.websocket_auth import WebSocketAuthenticator
+from app.core.auth import require_api_key, roles_required
+from app.core.error_handling.decorators import handle_errors
+from app.services.metrics_analyzer import MetricsAnalyzer
+
 
 class EnhancedSocketIOService:
     def __init__(self, app=None):
@@ -35,6 +39,9 @@ class EnhancedSocketIOService:
     def setup_event_handlers(self):
         @self.socketio.on('connect')
         @authenticated_socket
+        @require_api_key
+        @handle_errors()
+        @roles_required('admin', 'editor')
         def handle_connect(auth_token):
             client_id = request.sid
             if not self.rate_limiter.check_rate_limit(client_id):

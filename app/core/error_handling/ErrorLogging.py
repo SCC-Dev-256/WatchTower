@@ -5,7 +5,7 @@ from prometheus_client import Counter, Histogram
 from app.core.enums import EncoderStatus, StreamingState, EventType
 from app.core.security.security_logger import SecurityEventLogger
 from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
-from app.core.aja_constants import ReplicatorCommands, MediaState
+from app.core.aja.aja_constants import ReplicatorCommands, MediaState
 from pathlib import Path
 
 class ErrorMetrics:

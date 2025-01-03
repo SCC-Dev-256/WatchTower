@@ -2,6 +2,7 @@ from flask_socketio import SocketIO
 from app.core.config.websocket_config import Config
 import jwt
 from jwt.exceptions import InvalidTokenError
+from app.core.error_handling.decorators import handle_errors
 
 class WebSocketAuthenticator:
     """Handles authentication for WebSocket connections using JWT.
@@ -16,6 +17,7 @@ class WebSocketAuthenticator:
         self.socketio = socketio
         self.config = Config()
 
+    @handle_errors()
     def authenticate(self, token: str) -> bool:
         """Authenticate WebSocket connection using JWT.
 
@@ -34,6 +36,7 @@ class WebSocketAuthenticator:
         except InvalidTokenError:
             return False
 
+    @handle_errors()
     def on_connect(self, token: str):
         """Handle new WebSocket connection.
 

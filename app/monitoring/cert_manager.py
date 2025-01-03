@@ -3,6 +3,8 @@ import logging
 from .cert_monitor import CertificateMonitor, CertificateInfo
 from .cert_renewal import CertificateRenewal
 from .cert_metrics import CertificateMetrics
+from app.core.auth import require_api_key, roles_required
+from app.core.error_handling import handle_errors
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +25,9 @@ class CertificateManager:
         self.renewal = CertificateRenewal(self.domain, self.email)
         self.metrics = CertificateMetrics()
         
+    @roles_required('admin', 'editor')
+    @require_api_key
+    @handle_errors()
     def check_and_renew(self) -> Optional[dict]:
         """Check certificate status and renew if needed"""
         try:

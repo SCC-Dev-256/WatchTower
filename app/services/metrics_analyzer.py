@@ -1,8 +1,8 @@
 from typing import Dict, List
 import numpy as np
 from datetime import datetime, timedelta
-from ..models.encoder import Encoder
-from ..models.metrics import EncoderMetrics
+from app.core.database.models.encoder import Encoder
+from app.models.metrics import EncoderMetrics
 
 class MetricsAnalyzer:
     def __init__(self):

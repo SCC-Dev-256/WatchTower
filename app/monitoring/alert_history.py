@@ -2,6 +2,8 @@ from datetime import datetime
 from typing import Dict, List
 import sqlite3
 import json
+from app.core.auth import require_api_key, roles_required
+from app.core.error_handling import handle_errors
 
 class AlertHistory:
     def __init__(self, db_path="alert_history.db"):
@@ -48,7 +50,10 @@ class AlertHistory:
                 SET status = 'resolved', resolved_at = ?
                 WHERE id = ?
             """, (datetime.now().isoformat(), alert_id))
-    
+
+    @roles_required('admin', 'editor', 'viewer')
+    @require_api_key
+    @handle_errors()
     def get_active_alerts(self) -> List[Dict]:
         with sqlite3.connect(self.db_path) as conn:
             conn.row_factory = sqlite3.Row

@@ -8,6 +8,7 @@ from app.models.encoder import HeloEncoder
 from app.core.endpoint_registry import EndpointRegistry
 from dataclasses import dataclass
 from enum import Enum
+from app.core.security.rbac import roles_required
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +107,7 @@ class HeloDiscovery:
         
         return discovered_devices
 
+    @roles_required('admin', 'editor')
     async def _register_device(self, device: Dict) -> None:
         """Register discovered device in the system"""
         try:
@@ -133,6 +135,7 @@ class HeloDiscovery:
         except Exception as e:
             logger.error(f"Failed to register device {device['ip']}: {str(e)}")
 
+    @roles_required('viewer')
     async def monitor_devices(self, interval: int = 300) -> None:
         """
         Continuously monitor known devices

@@ -1,10 +1,10 @@
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 from collections import defaultdict
-from app.core.error_handling.error_types import ErrorType
-from app.core.error_handling.exceptions import EncoderError
-from app.monitoring.error_analysis import ErrorAnalyzer
-from app.services.performance_monitor import PerformanceMonitor
+from app.core.error_handling.errors.error_types import ErrorType
+from app.core.error_handling.errors.exceptions import EncoderError
+from app.core.error_handling.analysis import ErrorAnalyzer
+from app.core.error_handling.performance_monitoring import PerformanceMonitor
 
 class HeloErrorTracker:
     """Tracks and analyzes HELO-specific errors"""

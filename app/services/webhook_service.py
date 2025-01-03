@@ -4,12 +4,14 @@ import json
 import hmac
 import hashlib
 from datetime import datetime
+from app.core.error_handling.decorators import handle_errors
 
 class WebhookService:
     def __init__(self, app):
         self.app = app
         self.redis = app.redis_client
-        
+
+    @handle_errors()
     def send_webhook(self, url: str, data: Dict, retry: bool = True):
         """Send webhook with signature and retries"""
         payload = {
@@ -37,7 +39,8 @@ class WebhookService:
             if retry:
                 self._queue_retry(url, payload)
             return False
-            
+
+    @handle_errors()
     def _queue_retry(self, url: str, payload: Dict):
         """Queue failed webhook for retry"""
         self.redis.rpush(

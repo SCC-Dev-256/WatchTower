@@ -5,6 +5,8 @@ import time
 from typing import Dict, Tuple
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
+from app.core.auth import require_api_key, roles_required
+from app.core.error_handling import handle_errors
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +17,10 @@ class CertificateRenewal:
         self.domain = domain
         self.email = email
         self.max_reload_attempts = max_reload_attempts
-        
+    
+    @handle_errors()
+    @roles_required('admin')
+    @require_api_key
     def renew_certificate(self) -> Dict[str, str]:
         """Attempt to renew certificate using Certbot"""
         try:
@@ -37,7 +42,10 @@ class CertificateRenewal:
         except Exception as e:
             logger.error(f"Renewal process failed: {str(e)}")
             return {'status': 'error', 'message': str(e)}
-            
+
+    @handle_errors()
+    @roles_required('admin')
+    @require_api_key
     def reload_webserver(self) -> Dict[str, str]:
         """Reload nginx after certificate renewal with retry logic and health checks"""
         try:

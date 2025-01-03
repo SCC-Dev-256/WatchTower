@@ -1,8 +1,10 @@
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
 from .load_balancer import StreamingConfig
-from app.core.aja_parameters import AJAParameterManager
-from app.core.aja_constants import AJAStreamParams
+from app.core.aja.aja_parameters import AJAParameterManager
+from app.core.aja.aja_constants import AJAStreamParams
+from app.core.error_handling.decorators import handle_errors
+from app.core.auth import require_api_key, roles_required
 
 @dataclass
 class StreamValidationResult:
@@ -23,6 +25,9 @@ class StreamConfigValidator:
         self.max_bitrate = 20_000_000  # 20 Mbps
         self.param_manager = AJAParameterManager()
 
+    @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     def validate_config(self, config: StreamingConfig) -> StreamValidationResult:
         """Validate streaming configuration"""
         issues = []
@@ -91,6 +96,9 @@ class StreamConfigValidator:
         
         return int(base_bitrate)
 
+    @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     def _validate_rtmp_key(self, key: str) -> bool:
         """Validate RTMP stream key format"""
         if not key or len(key) < 10:
@@ -99,6 +107,9 @@ class StreamConfigValidator:
         # Add your specific RTMP key validation rules here
         return True 
 
+    @roles_required('admin', 'editor')
+    @require_api_key    
+    @handle_errors()
     async def validate_stream_config(self, config: Dict) -> Tuple[bool, List[str]]:
         """Validate stream configuration using AJA parameters"""
         errors = []

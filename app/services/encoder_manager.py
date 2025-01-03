@@ -10,6 +10,8 @@ from app.core.aja.aja_constants import ReplicatorCommands, MediaState, AJAParame
 from app.core.aja.aja_parameters import AJAParameterManager
 from app.core.aja.aja_remediation_service import AJARemediationService
 import asyncio
+from app.core.auth import require_api_key, roles_required
+from app.core.error_handling.decorators import handle_errors
 
 class EncoderManager(BaseMetricsService):
     def __init__(self, db):
@@ -21,6 +23,8 @@ class EncoderManager(BaseMetricsService):
         self.remediation_service = AJARemediationService(self)
 
     @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     async def get_encoder(self, encoder_id: str) -> HeloEncoder:
         """Get encoder by ID with error handling"""
         await self.increment_operation('get_encoder')
@@ -32,6 +36,8 @@ class EncoderManager(BaseMetricsService):
         return encoder
 
     @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     async def get_device(self, encoder: HeloEncoder) -> AJADevice:
         """Get or create AJA device instance"""
         await self.increment_operation('get_device')
@@ -41,6 +47,8 @@ class EncoderManager(BaseMetricsService):
         return self.device_cache[encoder.id]
 
     @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     async def execute_command(self, encoder_id: str, command_id: int) -> Dict:
         """Execute basic encoder command"""
         await self.log_and_track(
@@ -55,12 +63,18 @@ class EncoderManager(BaseMetricsService):
         await device.set_param("eParamID_ReplicatorCommand", command_id)
         return {"status": "success", "command_id": command_id}
 
+    @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     async def get_client(self, encoder_id: str) -> AJAHELOClient:
         if encoder_id not in self.clients:
             encoder = await self.get_encoder(encoder_id)
             self.clients[encoder_id] = AJAHELOClient(encoder.ip_address)
         return self.clients[encoder_id]
 
+    @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     async def start_stream(self, encoder_id: str, config: Dict) -> Dict:
         client = await self.get_client(encoder_id)
         

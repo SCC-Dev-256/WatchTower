@@ -1,6 +1,6 @@
 from typing import Dict
-from .handlers import ErrorHandler
-from .exceptions import APIError
+from app.core.error_handling.handlers import ErrorHandler
+from app.core.error_handling.decorators import handle_errors
 
 class MonitoringErrorHandler(ErrorHandler):
     """Specialized handler for monitoring-related errors"""

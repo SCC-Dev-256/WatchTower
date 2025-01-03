@@ -1,13 +1,16 @@
 from datetime import datetime, timedelta
 from collections import defaultdict
 import asyncio
+from app.core.error_handling.decorators import handle_errors
+
 
 class WebSocketRateLimiter:
     def __init__(self, rate_limit=100, time_window=60):
         self.rate_limit = rate_limit  # messages per time window
         self.time_window = time_window  # seconds
         self.client_messages = defaultdict(list)
-        
+
+    @handle_errors()
     def check_rate_limit(self, client_id: str) -> bool:
         now = datetime.now()
         window_start = now - timedelta(seconds=self.time_window)

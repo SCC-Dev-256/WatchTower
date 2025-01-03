@@ -1,6 +1,7 @@
 from typing import Dict
 from datetime import datetime
-from flask import current_app
+from app.core.error_handling.decorators import handle_errors
+
 
 class PerformanceMonitor:
     def __init__(self):
@@ -11,6 +12,7 @@ class PerformanceMonitor:
             'processing_time': 50 # ms
         }
 
+    @handle_errors()
     def record_client_metrics(self, client_id: str, metrics: Dict):
         """Record performance metrics for a client"""
         self.metrics[client_id] = {
@@ -18,6 +20,7 @@ class PerformanceMonitor:
             'data': metrics
         }
 
+    @handle_errors()
     def get_performance_metrics(self) -> Dict:
         """Get aggregated performance metrics"""
         return {

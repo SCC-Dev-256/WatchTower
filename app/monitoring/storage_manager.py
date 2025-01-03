@@ -1,6 +1,7 @@
 from typing import List, Dict
 from datetime import datetime
 import logging
+from app.core.security.rbac import roles_required
 
 class StorageManager:
     def __init__(self, device):
@@ -8,7 +9,8 @@ class StorageManager:
         self.logger = logging.getLogger(__name__)
         self.reboot_threshold = 3
         self.reboot_window = 300  # 5 minutes
-        
+
+    @roles_required('admin', 'editor')
     def check_storage_health(self) -> Dict:
         """Check health of both storage devices"""
         try:
@@ -28,7 +30,8 @@ class StorageManager:
         except Exception as e:
             self.logger.error(f"Storage health check failed: {str(e)}")
             return {"error": str(e)}
-    
+
+    @roles_required('admin')
     def handle_reboot_cycle(self, reboot_history: List[datetime]) -> Dict:
         """Handle device stuck in reboot cycle"""
         if self._is_in_reboot_cycle(reboot_history):
@@ -36,6 +39,7 @@ class StorageManager:
             return self._mitigate_storage_issues()
         return {"status": "normal"}
     
+    @roles_required('admin')
     def _mitigate_storage_issues(self) -> Dict:
         """Try disabling storage devices one at a time"""
         storage_status = self.check_storage_health()
@@ -60,6 +64,7 @@ class StorageManager:
         
         return {"status": "critical", "message": "Unable to resolve storage issues"}
     
+    @roles_required('admin')
     def _is_in_reboot_cycle(self, reboot_history: List[datetime]) -> bool:
         """Determine if device is in reboot cycle"""
         if len(reboot_history) < self.reboot_threshold:
@@ -71,3 +76,9 @@ class StorageManager:
         ]
         
         return len(recent_reboots) >= self.reboot_threshold 
+
+    @roles_required('admin')
+    def clear_storage(self, encoder_id: str):
+        """Clear storage for a specific encoder."""
+        # Implement storage clearing logic
+        pass 

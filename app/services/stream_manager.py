@@ -1,7 +1,9 @@
 from typing import Dict, Optional
 from app.core.base_service import BaseService
-from app.core.error_handling import handle_errors
 from app.core.error_handling.errors.exceptions import EncoderStreamError
+from app.core.auth import require_api_key, roles_required
+from app.core.error_handling.decorators import handle_errors   
+from app.services.encoder_service import EncoderService
 
 class StreamManager(BaseService):
     def __init__(self):
@@ -9,6 +11,8 @@ class StreamManager(BaseService):
         self.retry_attempts = self.config.get('STREAM_RETRY_ATTEMPTS', 3)
 
     @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     async def start_stream(self, encoder_id: str, stream_config: Dict) -> Dict:
         """Start streaming on an encoder"""
         await self._validate_input(stream_config, ['bitrate', 'resolution'])
@@ -30,6 +34,8 @@ class StreamManager(BaseService):
             )
 
     @handle_errors()
+    @roles_required('admin', 'editor')
+    @require_api_key
     async def stop_stream(self, encoder_id: str) -> Dict:
         """Stop streaming on an encoder"""
         try:
