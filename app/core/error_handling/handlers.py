@@ -2,10 +2,10 @@ from datetime import datetime
 from typing import Dict, Optional
 import logging
 from flask import current_app
-from .exceptions import APIError, EncoderError
+from app.core.error_handling.errors.exceptions import APIError, EncoderError
 from .responses import APIResponse
 from app.monitoring.error_analysis import ErrorAnalyzer
-from app.core.aja_remediation_service import AJARemediationService
+from app.core.aja.aja_remediation_service import AJARemediationService
 
 class ErrorHandler:
     def __init__(self, app=None):

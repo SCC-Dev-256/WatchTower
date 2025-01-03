@@ -16,3 +16,12 @@ def log_audit(user_id, action, resource, status):
         'resource': resource,
         'status': status
     }) 
+
+def log_role_change(user_id, action, role_name, status):
+    """Log role changes."""
+    audit_logger.info('', extra={
+        'user_id': user_id,
+        'action': action,
+        'role_name': role_name,
+        'status': status
+    }) 

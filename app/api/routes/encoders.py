@@ -3,13 +3,13 @@ from app.core.error_handling import handle_errors
 from app.models.encoder import HeloEncoder
 from app.core.auth import require_api_key
 from app.services.encoder_service import EncoderService
+from app.core.security.rbac import roles_required, permission_required
 
 encoder_bp = Blueprint('encoders', __name__, url_prefix='/api/encoders')
 encoder_service = EncoderService()
 
 @encoder_bp.route('/', methods=['GET'])
-@require_api_key
-@handle_errors()
+@roles_required('admin', 'user')
 def list_encoders():
     encoders = HeloEncoder.query.all()
     return jsonify([e.to_dict() for e in encoders])
@@ -78,3 +78,9 @@ async def get_status(encoder_id: str):
 async def get_system_status():
     """Get system-wide encoder status"""
     return await encoder_service.execute('get_system_status')
+
+@encoder_bp.route('/encoders/<int:encoder_id>', methods=['DELETE'])
+@permission_required('delete_encoder')
+def delete_encoder(encoder_id):
+    # Function implementation
+    return jsonify({"message": f"Encoder {encoder_id} deleted"})
