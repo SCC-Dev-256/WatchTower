@@ -21,11 +21,15 @@ class LoadBalancer(BaseMetricsService):
             if encoder_id in group['active_streams']:
                 encoder = await self.encoder_service.get_encoder(encoder_id)
                 health = await self.metrics_collector.get_stream_health(encoder)
-                
+
+                # Check temperature
+                if health['metrics']['temperature'] > 80:  # Example threshold
+                    self.logger.warning(f"High temperature on encoder {encoder_id}: {health['metrics']['temperature']}°C")
+                    if await self._should_trigger_failover(health):
+                        await self._initiate_failover(encoder_id)
+
                 if not health['healthy']:
-                    self.logger.warning(
-                        f"Unhealthy stream on encoder {encoder_id}: {health['issues']}"
-                    )
+                    self.logger.warning(f"Unhealthy stream on encoder {encoder_id}: {health['issues']}")
                     if await self._should_trigger_failover(health):
                         await self._initiate_failover(encoder_id)
 

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
-from ..database import db
-from .alert import Alert
-from .metrics import EncoderMetrics
+from app.core.database import db
+from app.models.alert import Alert
+from app.models.metrics import EncoderMetrics
 
 class Encoder(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -40,3 +40,7 @@ class ParameterConfig:
     def get_parameters_in_range(self, start: int, end: int) -> Dict[str, Parameter]:
         """Get parameters within a specific range of indices"""
         return {name: param for i, (name, param) in enumerate(self.parameters.items()) if start <= i < end} 
+
+    def get_temperature_parameter(self) -> Optional[Parameter]:
+        """Get the system temperature parameter configuration."""
+        return self.get_parameter("System Temperature") 

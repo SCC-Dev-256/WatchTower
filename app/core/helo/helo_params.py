@@ -113,7 +113,7 @@ class HeloDeviceParameters:
     recording_format: Optional[str] = None
     recording_filename: Optional[str] = None
     file_duration: str = "00:00:00:00"
-    encode_type: str = "H.264"
+    encode_type: EncodeType = EncodeType.H264
     width: int = 1280
     height: int = 720
     video_bit_rate: int = 20000
@@ -144,9 +144,10 @@ class HeloDeviceParameters:
     link_state: Optional[str] = None
     network_link_error_count: int = 0
     ethernet_interface_setup_state: str = "Uninitialized"
-    dropped_frames_record_behavior: str = "Continue"
-    dropped_frames_stream_behavior: str = "Continue"
-    loss_of_video_behavior: str = "Record Test Pattern"
+    dropped_frames_record_behavior: DroppedFramesBehavior = DroppedFramesBehavior.CONTINUE
+    dropped_frames_stream_behavior: DroppedFramesBehavior = DroppedFramesBehavior.CONTINUE
+    loss_of_video_behavior: LossOfVideoBehavior = LossOfVideoBehavior.RECORD_TEST_PATTERN
+    system_temperature: Optional[float] = None  # New parameter for system temperature
 
     # Media Storage Paths
     sd_card_record_path: Optional[str] = None
@@ -179,6 +180,42 @@ class HeloDeviceParameters:
     front_panel_button_lock: bool = False
     power_up_state: str = "Idle"
     user_authentication: bool = False
+    time_source: str = "Manual"
+    ntp_server: str = "ntp.aja.com"
+    date_set: Optional[str] = None
+    time_set: Optional[str] = None
+    time_zone: str = "Los Angeles"
+    daylight_savings: bool = False
+    scheduler: bool = False
+    scheduler_activity: str = "Record"
+    schedule_source: str = "Local"
+    remote_calendar_url: Optional[str] = None
+    last_sync: str = "Never"
+    import_export_local_calendar_file: Optional[str] = None
+    force_sync_with_remote_calendar: bool = False
+    updated_ics_file_available: bool = False
+    updated_journal_results_file_available: bool = False
+    remove_scheduled_event_history: bool = False
+    current_event: Optional[str] = None
+    next_event: Optional[str] = None
+    remove_local_calendar: bool = False
+    serial_number: str = "1HE010186"
+    safeboot_alarm: str = "NORMAL BOOT"
+    flash_versions: str = "Bootloader Version: 2.0.1.7-18040Md"
+    recording_profile: Optional[str] = None
+    recording_profile_name: Optional[str] = None
+    frame_rate: str = "Full"
+    video_geometry: VideoGeometry = VideoGeometry.USE_SELECTED_INPUT
+    lock_aspect_ratio: bool = False
+    advanced_settings: bool = False
+    i_frame_gop_every: int = 120
+    p_interval: int = 1
+    h264_encoding_profile: str = "Constrained"
+    slices_per_frame: int = 1
+    entropy_coding: str = "CABAC"
+    display_aspect_ratio: AspectRatio = AspectRatio.AUTO
+    stream_type: StreamType = StreamType.RTMP
+    rtmp_server_url: Optional[str] = None
 
 class HeloParameters:
     """Encapsulates HELO device parameters for analysis"""
