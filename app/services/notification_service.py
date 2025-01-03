@@ -2,9 +2,10 @@ from typing import Dict
 from app.core.base_service import BaseService
 from flask_socketio import SocketIO
 from app.core.config import Config
-from app.core.error_handling.analysis.correlation_analyzer import ErrorAnalyzer
 from app.core.error_handling.decorators import handle_errors
-from app.services.metrics_analyzer import MetricsAnalyzer
+from app.models.notification import NotificationSettings, NotificationRule
+from app.monitoring.notifications import NotificationTemplates
+import logging
 
 class NotificationService(BaseService):
     def __init__(self, socketio: SocketIO):
@@ -12,41 +13,40 @@ class NotificationService(BaseService):
         self.socketio = socketio
         self.connected_clients = {}
         self.config = Config()
+        self.logger = logging.getLogger(__name__)
+        self.templates = NotificationTemplates()
 
     @handle_errors()
-    async def _op_broadcast_encoder_update(self, encoder_id: str, data: Dict) -> None:
-        """Broadcast encoder updates to cablecasters"""
-        try:
-            # Add metrics analysis if available
-            if self.config.get('METRICS_ANALYSIS_ENABLED'):
-                # Analyze streaming stability and network health
-                metrics_analyzer = MetricsAnalyzer()
-                data['analysis'] = {
-                    'streaming': metrics_analyzer.analyze_streaming_stability([data['metrics']]),
-                    'network': metrics_analyzer.analyze_network_health([data['metrics']]),
-                    'storage': metrics_analyzer.predict_storage_needs([data['metrics']]),
-                    'error_analysis': ErrorAnalyzer(self.app).analyze_error({
-                        'encoder_id': data.get('encoder_id'),
-                        'message': data.get('message', ''),
-                        'timestamp': data.get('timestamp')
-                    })
-                }
-            
-            # Broadcast to cablecasters
-            for client_id, subscriptions in self.connected_clients.items():
-                if encoder_id in subscriptions.get('subscriptions', []):
-                    self.socketio.emit('encoder_update', data, room=client_id)
-                    
-        except Exception as e:
-            self.logger.error(f"Broadcast error for encoder {encoder_id}: {str(e)}")
-            raise
+    def send_notification(self, rule_id: int, data: dict) -> bool:
+        """Send notification based on a specific rule"""
+        rule = NotificationRule.query.get(rule_id)
+        if not rule:
+            self.logger.error(f"Notification rule {rule_id} not found")
+            return False
 
-    async def _analyze_metrics(self, data: Dict) -> Dict:
-        """Analyze metrics data"""
-        if 'metrics' not in data:
-            return {}
-            
-        return {
-            'stream_health': self._calculate_stream_health(data['metrics']),
-            'performance_score': self._calculate_performance(data['metrics'])
-        }
+        settings = NotificationSettings.query.first()
+        if not settings:
+            self.logger.error("Notification settings not found")
+            return False
+
+        # Format message using templates
+        message = self.templates.email_templates.format_error_notification(data)
+
+        # Send notification based on channels
+        for channel in rule.channels:
+            if channel == 'email' and settings.email_critical:
+                self._send_email(message)
+            elif channel == 'telegram' and settings.telegram_critical:
+                self._send_telegram(message)
+
+        return True
+
+    def _send_email(self, message: dict):
+        """Send email notification"""
+        # Implement email sending logic
+        pass
+
+    def _send_telegram(self, message: dict):
+        """Send Telegram notification"""
+        # Implement Telegram sending logic
+        pass

@@ -1,5 +1,5 @@
 from datetime import datetime
-from ..database import db
+from app.core.database import db
 
 class NotificationSettings(db.Model):
     id = db.Column(db.Integer, primary_key=True)

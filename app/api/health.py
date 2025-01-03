@@ -6,6 +6,7 @@ from app.core.connection.thermal_manager import ConnectionThermalManager
 from app.core.rest_API_client import AJADevice
 from app.models.encoder import HeloEncoder
 
+
 health_bp = Blueprint('health', __name__)
 
 @health_bp.route('/health/encoder/<int:encoder_id>')
