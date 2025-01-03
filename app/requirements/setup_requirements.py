@@ -1,16 +1,11 @@
 # setup_requirements.py
+import os
 import subprocess
 from pathlib import Path
 
-def read_existing_requirements():
-    requirements_path = Path('app/requirements/files/requirements.in')
-    if requirements_path.exists():
-        return requirements_path.read_text()
-    return None
-
 def create_requirements_files():
     # Create requirements directory if it doesn't exist
-    requirements_dir = Path('app/requirements/files')
+    requirements_dir = Path('requirements')
     requirements_dir.mkdir(exist_ok=True)
     
     # Base requirements content
@@ -49,21 +44,11 @@ pytest-mock==3.11.0
 
 # Production-specific requirements
 gunicorn==21.2.0
-psycopg2-binary==2.9.9  # Use binary to avoid pg_config issues
+psycopg2-binary==2.9.9  # For Linux
 """
 
-    requirements_file = requirements_dir / 'requirements.in'
-    existing_content = read_existing_requirements()
-
-    if existing_content:
-        if existing_content.strip() != base_content.strip():
-            print("Updating existing requirements.in with new content...")
-            requirements_file.write_text(base_content)
-        else:
-            print("Requirements file already up to date.")
-    else:
-        print("Creating new requirements.in file...")
-        requirements_file.write_text(base_content)
+    # Write base requirements
+    (requirements_dir / 'requirements.in').write_text(base_content)
 
 def compile_requirements():
     # Ensure pip-tools is installed
@@ -72,8 +57,8 @@ def compile_requirements():
     # Compile requirements
     subprocess.run([
         'pip-compile',
-        'app/requirements/files/requirements.in',
-        '--output-file=app/requirements/files/requirements.txt'
+        'requirements/requirements.in',
+        '--output-file=requirements/requirements.txt'
     ], check=True)
 
 def main():
@@ -83,7 +68,7 @@ def main():
     compile_requirements()
     print("\nRequirements setup complete!")
     print("You can now use:")
-    print("pip-sync app/requirements/files/requirements.txt  # for all environments")
+    print("pip-sync requirements/requirements.txt  # for all environments")
 
 if __name__ == '__main__':
     main()

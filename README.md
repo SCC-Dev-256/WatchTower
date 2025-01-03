@@ -31,6 +31,32 @@ WS --> Client
 - **Connection Health**: Historical pattern analysis
 - **WebSocket Integration**: Live updates
 - **Security**: API key auth and SSL monitoring
+- **Notification System**: Multi-channel alerts via email and Telegram
+
+## Notification System
+
+### Overview
+
+The notification system provides real-time alerts and updates through multiple channels, including email and Telegram. It is designed to ensure that critical events are communicated promptly to the relevant stakeholders.
+
+### Features
+
+- **Multi-Channel Support**: Notifications can be sent via email and Telegram.
+- **Customizable Rules**: Define notification rules based on conditions and priorities.
+- **Dynamic Templates**: Use dynamic templates for personalized and context-aware messages.
+- **Error Handling**: Robust error handling ensures reliable message delivery.
+
+### Telegram Integration
+
+The system integrates with the Telegram Bot API to send notifications directly to users. This includes:
+
+- **Critical Alerts**: Immediate notifications for critical issues.
+- **Status Updates**: Regular updates on encoder status and health.
+- **Test Notifications**: Ability to test the notification system to ensure connectivity.
+
+### Configuration
+
+To configure the notification system, update the `NotificationSettings` in the database with the appropriate email and Telegram credentials.
 
 ## Health Monitoring System
 
@@ -411,7 +437,7 @@ def on_health_update(data):
 
 ### License
 
-[Your License Here]
+Developed by [Andrew Schumacher]
 
 ### Monitoring System
 

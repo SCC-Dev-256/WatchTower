@@ -49,7 +49,7 @@ class TelegramBot:
             return False
 
     def _format_message(self, message: Dict) -> str:
-        """Format notification message for Telegram"""
+        """Format notification message for Telegram with dynamic content"""
         severity_emoji = {
             "critical": "🚨",
             "warning": "⚠️",
@@ -58,8 +58,12 @@ class TelegramBot:
 
         emoji = severity_emoji.get(message.get("severity", "info"), "ℹ️")
 
+        # Example of using loc_key and loc_args for dynamic content
+        loc_key = message.get('loc_key', 'Notification')
+        loc_args = message.get('loc_args', [])
+
         text = f"""
-{emoji} <b>{message.get('subject', 'Notification')}</b>
+{emoji} <b>{loc_key.format(*loc_args)}</b>
 
 <b>Encoder:</b> {message.get('encoder_name', 'Unknown')}
 <b>Status:</b> {message.get('status', 'Unknown')}
