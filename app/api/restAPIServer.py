@@ -67,7 +67,7 @@ from app.services.unified_websocket_service import UnifiedWebSocketService
 from app.services.socketio_service import EnhancedSocketIOService
 from app.services.websocket_auth import WebSocketAuthenticator
 
-from app.core.database.models.api_key_model import APIKey
+from app.core.database.models.api_key_management import APIKey
 
 from app.core.logging.audit_logger import log_audit
 

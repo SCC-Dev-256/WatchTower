@@ -4,7 +4,7 @@ from sqlalchemy import engine_from_config
 from alembic import context
 
 from app.core.database.models.encoder import HeloEncoder
-from app.core.database.models.api_key import APIKey
+from app.core.database.models.api_key_management import APIKey
 from app.core.database.models.log_entry import LogEntry
 from app.core.database import db
 

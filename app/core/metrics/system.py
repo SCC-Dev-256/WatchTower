@@ -2,7 +2,7 @@ from typing import Dict, List
 from datetime import datetime
 from app.core.error_handling import handle_errors
 from app.core.database import db
-from app.core.database.models.encoder_metric import EncoderMetrics
+from app.core.database.models.encoder import EncoderMetrics
 from app.core.metrics.analyzer import MetricsAnalyzer
 from app.core.metrics.collector import MetricsCollector
 

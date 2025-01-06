@@ -24,3 +24,16 @@ class APIKey(Base):
     def update_last_used(self):
         """Update the last used timestamp"""
         self.last_used_at = datetime.utcnow()
+
+    def __repr__(self):
+        return f"<APIKey {self.key}>"
+
+    def to_dict(self):
+        """Convert APIKey object to dictionary"""
+        return {
+            'key': self.key,
+            'name': self.name,
+            'created_at': self.created_at.isoformat(),
+            'last_used_at': self.last_used_at.isoformat() if self.last_used_at else None,
+            'is_active': self.is_active
+        }

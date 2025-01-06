@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request, jsonify
-from app.core.database.models.api_key_model import APIKey
+from app.core.database.models.api_key_management import APIKey
 from datetime import datetime
 
 def require_api_key(f):

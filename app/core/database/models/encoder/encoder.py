@@ -5,7 +5,7 @@ from app.core.database import db
 from app.core.enums import EncoderStatus, StreamingState, EventType, RecordingFormat
 from app.core.database.models.mixins import TimestampMixin, MetricsMixin
 
-class HeloEncoder(db.Model, TimestampMixin):
+class Encoder(db.Model, TimestampMixin):
     __tablename__ = 'encoders'
 
     id = Column(Integer, primary_key=True)
@@ -16,19 +16,6 @@ class HeloEncoder(db.Model, TimestampMixin):
     recording_state = Column(Boolean, default=False)
     last_checked = Column(DateTime, default=datetime.utcnow)
     firmware_version = Column(String(50))
-
-    def to_dict(self):
-        return {
-            **super().to_dict(),
-            'id': self.id,
-            'name': self.name,
-            'ip_address': self.ip_address,
-            'status': self.status.value,
-            'streaming_state': self.streaming_state.value,
-            'recording_state': self.recording_state,
-            'last_checked': self.last_checked.isoformat(),
-            'firmware_version': self.firmware_version
-        }
 
     # Relationships
     metrics = relationship('EncoderMetrics', back_populates='encoder', cascade='all, delete-orphan')
@@ -48,7 +35,7 @@ class EncoderMetrics(db.Model, MetricsMixin):
     bitrate = Column(Float)
     frame_drops = Column(Integer, default=0)
 
-    encoder = relationship('HeloEncoder', back_populates='metrics')
+    encoder = relationship('Encoder', back_populates='metrics')
 
 class EncoderEvent(db.Model):
     __tablename__ = 'encoder_events'
@@ -60,7 +47,7 @@ class EncoderEvent(db.Model):
     timestamp = Column(DateTime, default=datetime.utcnow)
     details = Column(db.JSON)
 
-    encoder = relationship('HeloEncoder', back_populates='events')
+    encoder = relationship('Encoder', back_populates='events')
 
 class EncoderConfig(db.Model):
     __tablename__ = 'encoder_configs'
@@ -76,4 +63,4 @@ class EncoderConfig(db.Model):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    encoder = relationship('HeloEncoder', back_populates='config')
+    encoder = relationship('Encoder', back_populates='config')
