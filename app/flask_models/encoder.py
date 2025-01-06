@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from app.core.database import db
-from app.models.alert import Alert
-from app.models.metrics import EncoderMetrics
+from app.flask_models.alert import Alert
+from app.flask_models.encoder_metric import EncoderMetrics
 
 class Encoder(db.Model):
     id = db.Column(db.Integer, primary_key=True)

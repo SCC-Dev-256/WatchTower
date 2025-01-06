@@ -1,17 +1,17 @@
 from app.core.database import db
 from flask import Blueprint, jsonify, request, render_template
-from app.models.notification import NotificationRule, NotificationSettings
+from app.flask_models.notification_model import NotificationRule, NotificationSettings
 from app.services.notification_service import NotificationService
 from app.core.auth import require_api_key, roles_required, error_handler
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, constr, conlist
 from typing import List
 
 notifications_bp = Blueprint('notifications', __name__)
 
 class NotificationRuleModel(BaseModel):
-    name: str
-    condition: str
-    channels: List[str]
+    name: str = constr(min_length=1, max_length=100)
+    condition: str = constr(min_length=1)
+    channels: List[str] = conlist(str, min_items=1)
     priority: int
 
 @notifications_bp.route('/notifications/settings', methods=['GET'])

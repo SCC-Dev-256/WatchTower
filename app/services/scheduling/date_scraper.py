@@ -30,15 +30,15 @@ class MeetingInfo:
     source_type: MeetingSource
 
 class DateScraper:
-    def __init__(self, cache: Cache, config: Dict[str, Dict[str, str]]):
-        self.sources = config
+    def __init__(self, cache: Cache):
+        self.city_db = CitySiteDB(cache)
         self.logger = logging.getLogger(__name__)
         self.cache = cache
 
     def fetch_meetings(self, source_name: str) -> List[MeetingInfo]:
         """Fetch meetings from a specific source"""
         try:
-            source = self.sources.get(source_name)
+            source = self.city_db.get_website(source_name)
             if not source:
                 logger.error(f"Unknown source: {source_name}")
                 return []
@@ -48,10 +48,10 @@ class DateScraper:
             if cached_meetings:
                 return cached_meetings
 
-            if source["type"] == MeetingSource.RSS:
-                meetings = self._parse_rss(source["url"])
+            if source.source_type == MeetingSource.RSS:
+                meetings = self._parse_rss(source.url)
             else:
-                meetings = self._scrape_calendar(source["url"])
+                meetings = self._scrape_calendar(source.url)
 
             self.cache.set(cache_key, meetings, timeout=3600)  # Cache for 1 hour
             return meetings
@@ -143,13 +143,16 @@ class DateScraper:
     def fetch_birchwood_meetings(self) -> List[MeetingInfo]:
         """Fetch Birchwood meetings, attempting PDF scraping first, then fallback to pattern generation."""
         try:
-            pdf_url = self.sources["birchwood"]["url"]
-            meetings = self._scrape_pdf(pdf_url)
+            source = self.city_db.get_website("birchwood")
+            if not source:
+                raise ValueError("Birchwood source not found in database")
+                
+            meetings = self._scrape_pdf(source.url)
 
             if not meetings:
                 # If no meetings were found in the PDF, generate based on a regular pattern
                 start_date = datetime.now().replace(day=2, hour=18, minute=45)  # Example start date
-                meetings = self._generate_regular_meetings(start_date, 12)  # Generate for the next 12 months
+                meetings = self._generate_regular_meetings(start_date, 12, source.url)  # Generate for the next 12 months
 
             return meetings
         except Exception as e:
@@ -188,7 +191,7 @@ class DateScraper:
         match = re.search(r'\b\w+ \d{1,2}, \d{4} \d{1,2}:\d{2} [APap][Mm]\b', text)
         return match.group(0) if match else None
 
-    def _generate_regular_meetings(self, start_date: datetime, months: int) -> List[MeetingInfo]:
+    def _generate_regular_meetings(self, start_date: datetime, months: int, source_url: str) -> List[MeetingInfo]:
         """Generate meeting dates based on a regular pattern."""
         meetings = []
         for i in range(months):
@@ -199,7 +202,7 @@ class DateScraper:
                 location="Birchwood City Hall",
                 meeting_type="Council",
                 description="Regular monthly meeting",
-                source_url=self.sources["birchwood"]["url"],
+                source_url=source_url,
                 source_type=MeetingSource.CALENDAR
             )
             meetings.append(meeting)
