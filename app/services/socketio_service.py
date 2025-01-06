@@ -1,20 +1,24 @@
 from flask_socketio import SocketIO, emit, disconnect
 from flask import current_app, request
-from app.models.encoder import Encoder
+from app.core.database.models.encoder import Encoder
 from ..services.metrics_analyzer import MetricsAnalyzer
 from app.core.error_handling import handle_errors
 from app.core.errors import APIError, EncoderError
 from datetime import datetime
 import time
-from ..services.websocket_security import WebSocketSecurity
-from ..services.performance_monitor import PerformanceMonitor
-from ..services.load_balancer import LoadBalancer
-from ..services.websocket_auth import authenticated_socket
-from ..services.websocket_rate_limiter import WebSocketRateLimiter
-from ..services.websocket_auth import WebSocketAuthenticator
+from app.core.database.models.encoder import Encoder
+from app.core.database.models.encoder_metric import EncoderMetrics
+from app.core.database.models.notification_model import NotificationSettings, NotificationRule
+from app.core.database.models.api_key_model import APIKey
+from app.core.database.models.log_entry import LogEntry
 from app.core.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
 from app.services.metrics_analyzer import MetricsAnalyzer
+from app.services.websocket_security import WebSocketSecurity
+from app.services.websocket_rate_limiter import WebSocketRateLimiter
+from app.services.websocket_auth import Authenticator
+from app.services.load_balancer import LoadBalancer
+from app.services.performance_monitor import PerformanceMonitor
 
 
 class EnhancedSocketIOService:
@@ -26,7 +30,7 @@ class EnhancedSocketIOService:
         self.performance_monitor = PerformanceMonitor()
         self.load_balancer = LoadBalancer()
         self.rate_limiter = WebSocketRateLimiter()
-        self.authenticator = WebSocketAuthenticator()
+        self.authenticator = Authenticator()
         
         if app:
             self.init_app(app)
@@ -38,7 +42,6 @@ class EnhancedSocketIOService:
     
     def setup_event_handlers(self):
         @self.socketio.on('connect')
-        @authenticated_socket
         @require_api_key
         @handle_errors()
         @roles_required('admin', 'editor')
@@ -52,7 +55,9 @@ class EnhancedSocketIOService:
             self._initialize_client(client_id)
             
         @self.socketio.on('subscribe_encoder')
-        @authenticated_socket
+        @require_api_key
+        @handle_errors()
+        @roles_required('admin', 'editor')
         def handle_subscription(data, auth_token):
             client_id = request.sid
             if not self.rate_limiter.check_rate_limit(client_id):

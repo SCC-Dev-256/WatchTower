@@ -7,7 +7,7 @@ from app.core.rest_API_client import AJADevice
 from app.core.metrics.base_metrics import BaseMetricsService
 from app.core.aja.aja_client import AJAHELOClient
 from app.core.aja.aja_constants import ReplicatorCommands, MediaState, AJAParameters
-from app.core.aja.aja_parameters import AJAParameterManager
+from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_remediation_service import AJARemediationService
 import asyncio
 from app.core.auth import require_api_key, roles_required

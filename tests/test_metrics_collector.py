@@ -3,7 +3,7 @@ from datetime import datetime
 from unittest.mock import Mock, patch
 from app.services.metrics_collector import MetricsCollector
 from app.models.encoder import Encoder
-from app.models.metrics import EncoderMetrics
+from app.models.encoder_metric import EncoderMetrics
 
 @pytest.fixture
 def app():

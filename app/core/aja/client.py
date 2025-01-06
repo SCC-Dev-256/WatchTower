@@ -2,7 +2,7 @@ from typing import Dict, Optional, Union
 import aiohttp
 import asyncio
 from datetime import datetime
-from app.core.aja.aja_parameters import AJAParameterManager
+from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
 from app.core.error_handling.errors.aja_exceptions import AJAClientError
 from enum import Enum

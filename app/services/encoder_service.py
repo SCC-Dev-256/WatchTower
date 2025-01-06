@@ -6,7 +6,7 @@ from app.core.enums import EncoderStatus, StreamingState
 from app.core.database import db
 from datetime import datetime, timedelta
 from app.core.aja.aja_client import AJAHELOClient
-from app.core.aja.aja_parameters import AJAParameterManager
+from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
 from app.core.error_handling.decorators import handle_errors
 from app.core.error_handling.ErrorLogging import ErrorLogger

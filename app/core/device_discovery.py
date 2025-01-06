@@ -4,7 +4,7 @@ import asyncio
 import aiohttp
 import logging
 from datetime import datetime
-from app.models.encoder import HeloEncoder
+from app.core.database.models.encoder import HeloEncoder
 from app.core.endpoint_registry import EndpointRegistry
 from dataclasses import dataclass
 from enum import Enum

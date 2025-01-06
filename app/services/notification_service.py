@@ -3,8 +3,8 @@ from app.core.base_service import BaseService
 from flask_socketio import SocketIO
 from app.core.config import Config
 from app.core.error_handling.decorators import handle_errors
-from app.models.notification import NotificationSettings, NotificationRule
-from app.monitoring.notifications import NotificationTemplates
+from app.core.database.models.notification_model import NotificationSettings, NotificationRule
+from app.monitoring.notification_logic import NotificationTemplates
 import logging
 
 class NotificationService(BaseService):

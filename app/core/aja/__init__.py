@@ -1,5 +1,5 @@
 from .aja_device import AJADevice
-from .aja_parameters import AJAParameterManager, AJAParameter, AJAReplicatorCommands, AJAMediaState
+from .aja_helo_parameter_service import AJAParameterManager, AJAParameter, AJAReplicatorCommands, AJAMediaState
 from .client import AJAHELOClient, AJAHELOEndpoints
 from .aja_remediation_service import AJARemediationService
 

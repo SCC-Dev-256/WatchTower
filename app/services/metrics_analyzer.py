@@ -2,7 +2,7 @@ from typing import Dict, List
 import numpy as np
 from datetime import datetime, timedelta
 from app.core.database.models.encoder import Encoder
-from app.models.metrics import EncoderMetrics
+from app.core.database.models.encoder_metric import EncoderMetrics
 
 class MetricsAnalyzer:
     def __init__(self):

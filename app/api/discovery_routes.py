@@ -105,7 +105,7 @@ def _check_failover_available(ip: str) -> bool:
 def list_devices():
     """List all known devices"""
     try:
-        from app.models.encoder import HeloEncoder
+        from app.core.database.models.encoder import HeloEncoder
         encoders = HeloEncoder.query.all()
         
         return jsonify({

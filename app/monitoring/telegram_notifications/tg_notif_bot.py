@@ -4,8 +4,8 @@ import logging
 from flask import Blueprint, jsonify, request, render_template
 from app.core.database import db
 from app.core.error_handling.decorators import handle_errors
-from app.models.notification import NotificationSettings, NotificationRule
-from app.monitoring.notifications import NotificationTemplates
+from app.core.database.models.notification_model import NotificationSettings, NotificationRule
+from app.monitoring.notification_logic import NotificationTemplates
 
 logger = logging.getLogger(__name__)
 

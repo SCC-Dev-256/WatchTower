@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import asyncio
 from prometheus_client import Counter, Gauge, Histogram
 from app.core.error_handling import handle_errors
-from app.models.metrics import EncoderMetrics
+from app.core.database.models.encoder_metric import EncoderMetrics
 from app.core.logging.system import LoggingSystem
 from app.core.database import db
 

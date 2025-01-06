@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Dict, Optional, Tuple
 from .load_balancer import StreamingConfig
-from app.core.aja.aja_parameters import AJAParameterManager
+from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
 from app.core.error_handling.decorators import handle_errors
 from app.core.auth import require_api_key, roles_required
