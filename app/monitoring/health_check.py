@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 from typing import Dict, Any
 from app.core.connection.health_checker import HealthChecker
 from app.core.logging.system import LoggingSystem
@@ -16,8 +17,29 @@ class HealthCheckService:
         """Check the health of a specific encoder."""
         try:
             health_data = await self.health_checker.get_encoder_health(encoder_id)
-            # Log temperature data
-            self.logger.log_event('health_check', f"Encoder {encoder_id} temperature: {health_data['metrics']['temperature']}", 'info')
+            # Log temperature and other metrics
+            self.logger.log_event('health_check', f"Encoder {encoder_id} metrics: {health_data['metrics']}", 'info')
+
+            # Send alerts for flagged issues
+            if 'issues' in health_data:
+                for issue in health_data['issues']:
+                    self.logger.log_event('alert', f"Encoder {encoder_id} issue: {issue}", 'warning')
+                    # Send notification through notification manager
+                    notification = {
+                        'error_type': 'health_check',
+                        'severity': 'warning',
+                        'encoder_id': encoder_id,
+                        'timestamp': datetime.now().isoformat(),
+                        'category': 'encoder_health',
+                        'message': f'Health check detected issue: {issue}',
+                        'impact': {
+                            'service_impact': 'degraded',
+                            'affected_users': 'unknown'
+                        }
+                    }
+                    if self.app.notification_manager.should_send_notification('warning', encoder_id):
+                        self.app.notification_manager.send_grouped_notification(notification)
+
             self.encoder_health_gauge.labels(encoder_id=encoder_id).set(health_data['status'])
             return health_data
         except Exception as e:

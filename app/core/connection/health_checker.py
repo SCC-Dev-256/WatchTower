@@ -13,10 +13,12 @@ class HealthChecker:
             if not encoder:
                 raise EncoderError(f"Encoder {encoder_id} not found", encoder_id=encoder_id)
 
-            # Fetch temperature data
+            # Fetch temperature and other parameters
             parameter_config = ParameterConfig()
             temperature_param = parameter_config.get_temperature_parameter()
-            temperature = encoder.get_parameter_value(temperature_param.name)  # Assuming a method to get parameter value
+            temperature = encoder.get_parameter_value(temperature_param.name)
+            network_link_error_count = encoder.network_link_error_count
+            dropped_frames_behavior = encoder.dropped_frames_stream_behavior
 
             # Simulate health check logic
             health_status = {
@@ -24,9 +26,20 @@ class HealthChecker:
                 'metrics': {
                     'cpu_usage': 50,  # Placeholder value
                     'memory_usage': 60,  # Placeholder value
-                    'temperature': temperature  # New temperature metric
+                    'temperature': temperature,
+                    'network_link_error_count': network_link_error_count,
+                    'dropped_frames_behavior': dropped_frames_behavior
                 }
             }
+
+            # Flag issues
+            if temperature > 80:
+                health_status['issues'] = health_status.get('issues', []) + ['high_temperature']
+            if network_link_error_count > 10:
+                health_status['issues'] = health_status.get('issues', []) + ['network_link_errors']
+            if dropped_frames_behavior == 'Stop':
+                health_status['issues'] = health_status.get('issues', []) + ['dropped_frames']
+
             return health_status
         except Exception as e:
             raise EncoderError(f"Failed to get health for encoder {encoder_id}: {str(e)}", encoder_id=encoder_id)
