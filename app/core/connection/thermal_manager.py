@@ -2,8 +2,12 @@ from typing import Dict, Optional, List
 from datetime import datetime, timedelta
 import asyncio
 from prometheus_client import Gauge, Counter, Histogram
-from app.core.error_handling.enhanced_metrics import EnhancedErrorMetrics
+from app.core.error_handling.errors import EnhancedErrorMetrics
 from app.core.connection.warmup_manager import HeloWarmupManager
+from app.core.helo.helo_params import HeloDeviceParameters, VideoGeometry
+from app.core.helo.helo_commands import HeloEncoder
+from app.core.database import db
+from app.core.error_handling.errors.exceptions import EncoderError
 
 class ConnectionThermalMetrics:
     """Metrics for connection thermal management"""
@@ -220,3 +224,72 @@ class ConnectionThermalManager:
             'connection_id': connection_id,
             'error': error
         }) 
+
+    async def reduce_load(self, encoder_id: str):
+        """
+        Reduce the load on the encoder to manage temperature.
+        
+        Args:
+            encoder_id (str): The ID of the encoder to adjust.
+        """
+        try:
+            # Fetch the encoder's current parameters
+            encoder = await HeloEncoder.query.get(encoder_id)
+            if not encoder:
+                raise ValueError(f"Encoder {encoder_id} not found")
+
+            # Adjust parameters to reduce load
+            encoder.device_parameters.width = 1280  # Reduce to 720p
+            encoder.device_parameters.height = 720
+            encoder.device_parameters.video_bit_rate = 5000  # Lower bitrate
+            encoder.device_parameters.frame_rate = "Half"  # Reduce FPS
+            encoder.device_parameters.video_geometry = VideoGeometry.MANUAL  # Ensure manual settings
+
+            # Log the adjustment
+            self.logger.info(f"Load reduced for encoder {encoder_id} to manage temperature.")
+            
+            # Optionally, update the encoder's settings in the database or device
+            await self._apply_encoder_settings(encoder)
+
+        except Exception as e:
+            self.logger.error(f"Failed to reduce load for encoder {encoder_id}: {str(e)}")
+
+    async def _apply_encoder_settings(self, encoder: HeloEncoder):
+        """
+        Apply the updated settings to the encoder.
+        
+        Args:
+            encoder (HeloEncoder): The encoder with updated settings.
+            
+        Raises:
+            EncoderError: If settings cannot be applied to the encoder.
+        """
+        try:
+            # Get client for this encoder
+            client = await self.encoder_service.get_client(encoder.id)
+            
+            # Build settings dict from device parameters
+            settings = {
+                'Video Bit Rate': encoder.device_parameters.video_bit_rate,
+                'Frame Rate': encoder.device_parameters.frame_rate,
+                'Video Geometry': encoder.device_parameters.video_geometry.value,
+                'Width': encoder.device_parameters.width,
+                'Height': encoder.device_parameters.height
+            }
+
+            # Update encoder settings through encoder service
+            await self.encoder_service.update_encoder_settings(encoder.id, settings)
+
+            # Update database record
+            await db.session.commit()
+
+            self.logger.info(f"Successfully applied thermal management settings to encoder {encoder.id}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to apply settings to encoder {encoder.id}: {str(e)}")
+            raise EncoderError(
+                f"Failed to apply thermal settings: {str(e)}",
+                encoder_id=encoder.id,
+                error_type="settings_update"
+            )
+        pass 

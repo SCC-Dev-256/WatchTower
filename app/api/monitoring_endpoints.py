@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
-from ..core.error_handler import handle_api_errors
-from ..services.load_balancer import LoadBalancer
+from ..core.error_handling.decorators import handle_api_errors
+from ..services.encoder_backup_fail_over import LoadBalancer
 
 monitoring_bp = Blueprint('monitoring', __name__)
 load_balancer = LoadBalancer()

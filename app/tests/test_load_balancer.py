@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import Mock, patch
 import time
-from ..services.load_balancer import LoadBalancer, EncoderHealth, StreamingConfig
+from ..services.encoder_backup_fail_over import LoadBalancer, EncoderHealth, StreamingConfig
 
 @pytest.fixture
 def load_balancer():

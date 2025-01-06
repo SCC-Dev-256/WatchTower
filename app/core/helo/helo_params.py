@@ -116,7 +116,7 @@ class HeloDeviceParameters:
     encode_type: EncodeType = EncodeType.H264
     width: int = 1280
     height: int = 720
-    video_bit_rate: int = 20000
+    video_bit_rate: int = 10000
     audio_bit_rate: AudioBitRate = AudioBitRate.KBPS_128
     rtsp_authentication: RTSPAuthentication = RTSPAuthentication.NONE
     rtsp_username: Optional[str] = None

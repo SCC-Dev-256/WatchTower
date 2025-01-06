@@ -5,12 +5,12 @@ import logging
 from typing import Dict, Any, Set
 from collections import defaultdict
 from app.core.logging import setup_logging
-from app.services.websocket_auth import WebSocketAuthenticator
+from app.services.websocket.websocket_auth import WebSocketAuthenticator
 from app.core.config.websocket_config import Config
 from app.core.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
-from app.services.websocket_security import WebSocketSecurity
-from app.services.websocket_rate_limiter import WebSocketRateLimiter
+from app.services.websocket.websocket_security import WebSocketSecurity
+from app.services.websocket.websocket_rate_limiter import WebSocketRateLimiter
 from app.services.encoder_manager import EncoderManager
 from app.services.encoder_service import EncoderService
 

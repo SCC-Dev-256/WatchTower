@@ -63,9 +63,9 @@ from app.core.device_discovery import HeloDiscovery
 import asyncio
 
 from flask_socketio import SocketIO
-from app.services.unified_websocket_service import UnifiedWebSocketService
+from app.services.websocket.unified_websocket_service import UnifiedWebSocketService
 from app.services.socketio_service import EnhancedSocketIOService
-from app.services.websocket_auth import WebSocketAuthenticator
+from app.services.websocket.websocket_auth import WebSocketAuthenticator
 
 from app.core.database.models.api_key_management import APIKey
 

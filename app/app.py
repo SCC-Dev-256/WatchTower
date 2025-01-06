@@ -10,10 +10,10 @@ from app.core.error_handling import (
 )
 from app.services.encoder_manager import EncoderManager
 from app.services.notification_service import NotificationService
-from app.services.unified_websocket_service import UnifiedWebSocketService
-from app.services.webhook_service import WebhookService
-from app.services.websocket_auth import WebSocketAuthenticator
-from app.services.websocket_rate_limiter import WebSocketRateLimiter
+from app.services.websocket.unified_websocket_service import UnifiedWebSocketService
+from app.services.websocket.webhook_service import WebhookService
+from app.services.websocket.websocket_auth import WebSocketAuthenticator
+from app.services.websocket.websocket_rate_limiter import WebSocketRateLimiter
 from app.monitoring.cert_manager import CertificateManager
 from app.monitoring.health_check import HealthChecker
 from app.monitoring import MonitoringSystem

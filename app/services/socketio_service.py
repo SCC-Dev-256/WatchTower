@@ -14,10 +14,10 @@ from app.core.database.models.log_entry import LogEntry
 from app.core.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
 from app.services.metrics_analyzer import MetricsAnalyzer
-from app.services.websocket_security import WebSocketSecurity
-from app.services.websocket_rate_limiter import WebSocketRateLimiter
-from app.services.websocket_auth import Authenticator
-from app.services.load_balancer import LoadBalancer
+from app.services.websocket.websocket_security import WebSocketSecurity
+from app.services.websocket.websocket_rate_limiter import WebSocketRateLimiter
+from app.services.websocket.websocket_auth import Authenticator
+from app.services.encoder_backup_fail_over import LoadBalancer
 from app.services.performance_monitor import PerformanceMonitor
 
 
