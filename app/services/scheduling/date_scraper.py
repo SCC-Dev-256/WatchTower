@@ -6,6 +6,12 @@ from typing import List, Dict, Optional
 import logging
 from dataclasses import dataclass
 from enum import Enum
+import pdfplumber
+from dateutil.relativedelta import relativedelta
+import re
+from dateutil import parser as date_parser
+from flask_caching import Cache
+from app.services.scheduling.website_db.citysite import CitySiteDB
 
 logger = logging.getLogger(__name__)
 
@@ -24,33 +30,10 @@ class MeetingInfo:
     source_type: MeetingSource
 
 class DateScraper:
-    def __init__(self):
-        self.sources = {
-            "oakdale": {
-                "url": "https://oakdalemn.gov/rss.aspx#agendaCenter",
-                "type": MeetingSource.RSS
-            },
-            "mahtomedi": {
-                "url": "https://mahtomedi.gov/rss.aspx#agendaCenter", 
-                "type": MeetingSource.RSS
-            },
-            "white_bear_township": {
-                "url": "http://www.ci.white-bear-township.mn.us/rss.aspx#calendar",
-                "type": MeetingSource.RSS
-            },  
-            "birchwood": {
-                "url": "https://cityofbirchwood.com/general-city-information/city-council/participating-in-city-council-meetings/",
-                "type": MeetingSource.CALENDAR
-            },
-            "lake_elmo": {
-                "url": "https://www.lakeelmo.gov/calendar_app/index.html",
-                "type": MeetingSource.CALENDAR
-            },
-            "white_bear": {
-                "url": "https://whitebearlake.org/calendar.php",
-                "type": MeetingSource.CALENDAR
-            }
-        }
+    def __init__(self, cache: Cache, config: Dict[str, Dict[str, str]]):
+        self.sources = config
+        self.logger = logging.getLogger(__name__)
+        self.cache = cache
 
     def fetch_meetings(self, source_name: str) -> List[MeetingInfo]:
         """Fetch meetings from a specific source"""
@@ -60,10 +43,18 @@ class DateScraper:
                 logger.error(f"Unknown source: {source_name}")
                 return []
                 
+            cache_key = f"meetings_{source_name}"
+            cached_meetings = self.cache.get(cache_key)
+            if cached_meetings:
+                return cached_meetings
+
             if source["type"] == MeetingSource.RSS:
-                return self._parse_rss(source["url"])
+                meetings = self._parse_rss(source["url"])
             else:
-                return self._scrape_calendar(source["url"])
+                meetings = self._scrape_calendar(source["url"])
+
+            self.cache.set(cache_key, meetings, timeout=3600)  # Cache for 1 hour
+            return meetings
                 
         except Exception as e:
             logger.error(f"Error fetching meetings from {source_name}: {str(e)}")
@@ -76,7 +67,7 @@ class DateScraper:
         
         for entry in feed.entries:
             try:
-                date = datetime.strptime(entry.published, "%a, %d %b %Y %H:%M:%S %z")
+                date = date_parser.parse(entry.published)
                 meeting = MeetingInfo(
                     title=entry.title,
                     date=date,
@@ -143,17 +134,73 @@ class DateScraper:
 
     def _parse_date(self, date_str: str) -> datetime:
         """Parse date string to datetime object"""
-        # Try common date formats
-        formats = [
-            "%B %d, %Y %I:%M %p",
-            "%Y-%m-%d %H:%M",
-            "%m/%d/%Y %I:%M %p"
-        ]
-        
-        for fmt in formats:
-            try:
-                return datetime.strptime(date_str, fmt)
-            except ValueError:
-                continue
-                
-        raise ValueError(f"Unable to parse date: {date_str}")
+        try:
+            return date_parser.parse(date_str)
+        except ValueError as e:
+            logger.error(f"Unable to parse date: {date_str} - {str(e)}")
+            raise
+
+    def fetch_birchwood_meetings(self) -> List[MeetingInfo]:
+        """Fetch Birchwood meetings, attempting PDF scraping first, then fallback to pattern generation."""
+        try:
+            pdf_url = self.sources["birchwood"]["url"]
+            meetings = self._scrape_pdf(pdf_url)
+
+            if not meetings:
+                # If no meetings were found in the PDF, generate based on a regular pattern
+                start_date = datetime.now().replace(day=2, hour=18, minute=45)  # Example start date
+                meetings = self._generate_regular_meetings(start_date, 12)  # Generate for the next 12 months
+
+            return meetings
+        except Exception as e:
+            self.logger.error(f"Failed to fetch Birchwood meetings: {str(e)}")
+            return []
+
+    def _scrape_pdf(self, url: str) -> List[MeetingInfo]:
+        """Scrape meeting dates from a PDF document."""
+        meetings = []
+        response = requests.get(url)
+        with pdfplumber.open(response.content) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                # Implement logic to parse dates from text
+                for line in text.split('\n'):
+                    if "meeting" in line.lower():
+                        # Extract date and time from the line
+                        date_str = self._extract_date_from_text(line)
+                        if date_str:
+                            date = date_parser.parse(date_str)
+                            meeting = MeetingInfo(
+                                title="Birchwood Meeting",
+                                date=date,
+                                location="Birchwood City Hall",
+                                meeting_type="Council",
+                                description="Monthly council meeting",
+                                source_url=url,
+                                source_type=MeetingSource.CALENDAR
+                            )
+                            meetings.append(meeting)
+        return meetings
+
+    def _extract_date_from_text(self, text: str) -> str:
+        """Extract date string from text."""
+        # Use regex to match date patterns
+        match = re.search(r'\b\w+ \d{1,2}, \d{4} \d{1,2}:\d{2} [APap][Mm]\b', text)
+        return match.group(0) if match else None
+
+    def _generate_regular_meetings(self, start_date: datetime, months: int) -> List[MeetingInfo]:
+        """Generate meeting dates based on a regular pattern."""
+        meetings = []
+        for i in range(months):
+            meeting_date = start_date + relativedelta(months=i)
+            meeting = MeetingInfo(
+                title="Birchwood Regular Meeting",
+                date=meeting_date,
+                location="Birchwood City Hall",
+                meeting_type="Council",
+                description="Regular monthly meeting",
+                source_url=self.sources["birchwood"]["url"],
+                source_type=MeetingSource.CALENDAR
+            )
+            meetings.append(meeting)
+        return meetings
