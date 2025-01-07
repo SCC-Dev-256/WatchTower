@@ -7,7 +7,7 @@ from app.core.database.models.encoder import EncoderMetrics
 from app.core.logging.system import LoggingSystem
 from app.core.database import db
 from app.core.error_handling.handlers import MonitoringErrorHandler
-from app.core.error_handling.ErrorLogging import ErrorLogger
+from app.core.error_handling.error_logging import ErrorLogger
 
 class EncoderMonitoringSystem:
     """Unified monitoring system"""

@@ -8,7 +8,7 @@ from app.core.error_handling.analysis.correlation_analyzer import ErrorAnalyzer
 from app.core.aja.aja_remediation_service import AJARemediationService
 from app.core.aja.client import AJAHELOClient
 from app.core.error_handling.decorators import handle_errors
-from app.core.error_handling.ErrorLogging import ErrorLogger
+from app.core.error_handling.error_logging import ErrorLogger
 
 class ErrorHandler:
     def __init__(self, app=None):

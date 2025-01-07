@@ -1,7 +1,7 @@
 from functools import wraps
 from flask import current_app, jsonify
 from typing import Callable, Any
-from app.core.error_handling.ErrorLogging import ErrorLogger
+from app.core.error_handling.error_logging import ErrorLogger
 from app.core.error_handling.analysis import ErrorAnalyzer
 import asyncio
 

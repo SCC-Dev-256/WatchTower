@@ -1,7 +1,7 @@
 from functools import wraps
 from typing import Dict
 import logging
-from app.core.error_handling.ErrorLogging import ErrorLogger
+from app.core.error_handling.error_logging import ErrorLogger
 
 logger = logging.getLogger(__name__)
 

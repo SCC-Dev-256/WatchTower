@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 import plotly.graph_objects as go
-from app.core.error_handling.ErrorLogging import ErrorMetrics
+from app.core.error_handling.error_logging import ErrorMetrics
 
 class ErrorVisualizer:
     """Base error visualization capabilities"""

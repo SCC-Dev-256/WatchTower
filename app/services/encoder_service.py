@@ -9,7 +9,7 @@ from app.core.aja.aja_client import AJAHELOClient
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
 from app.core.error_handling.decorators import handle_errors
-from app.core.error_handling.ErrorLogging import ErrorLogger
+from app.core.error_handling.error_logging import ErrorLogger
 from app.core.error_handling.analysis import ErrorAnalyzer
 from app.core.error_handling.performance_monitoring import PerformanceMonitor
 from app.core.error_handling.helo_error_tracking import ErrorTracking

@@ -1,6 +1,5 @@
 from typing import List
-from app.core.error_handling.ErrorLogging import ErrorLogger
-from app.core.error_handling.restart_monitor import RestartMonitor
+from app.core.error_handling.error_logging import ErrorLogger
 
 
 class StorageHandler:
@@ -12,49 +11,32 @@ class StorageHandler:
             'SMB': 'SMB Network Record Path',
             'NFS': 'NFS Network Record Path'
         }
+        self.restart_keywords = ["initialization", "assigning", "network access"]
 
     async def dismount_storage(self, encoder_id: str, path: str):
-        """Safely dismount a storage path for an encoder
-        
-        Args:
-            encoder_id (str): ID of the encoder
-            path (str): Storage path to dismount
-        """
+        """Safely dismount a storage path for an encoder"""
         try:
-            # Set mounted parameter to False to dismount
             mounted_param = f'{path} Mounted'
             await self._set_device_param(encoder_id, mounted_param, False)
             self.logger.info(f"Successfully dismounted {path} for encoder {encoder_id}")
             
             # Monitor for restart after dismount
-            restart_monitor = RestartMonitor()
-            await restart_monitor.monitor_restart_loop(encoder_id)
+            await self._monitor_restart_loop(encoder_id)
             
         except Exception as e:
             self.logger.error(f"Failed to dismount {path} for encoder {encoder_id}: {str(e)}")
             raise
 
     async def mount_storage(self, encoder_id: str, path: str) -> bool:
-        """Attempt to mount storage path for an encoder
-        
-        Args:
-            encoder_id (str): ID of the encoder
-            path (str): Storage path to mount
-            
-        Returns:
-            bool: True if mount successful, False otherwise
-        """
+        """Attempt to mount storage path for an encoder"""
         try:
-            # Set mounted parameter to True to mount
             mounted_param = f'{path} Mounted'
             await self._set_device_param(encoder_id, mounted_param, True)
             
             # Monitor for restart after mount attempt
-            restart_monitor = RestartMonitor()
-            await restart_monitor.monitor_restart_loop(encoder_id)
+            await self._monitor_restart_loop(encoder_id)
             
-            # If we detect restarts, dismount the problematic drive
-            if restart_monitor.metrics['restart_count'].labels(encoder_id).get() > 2:
+            if self.metrics['restart_count'].labels(encoder_id).get() > 2:
                 self.logger.warning(f"Storage {path} causing restarts on {encoder_id}, dismounting")
                 await self.dismount_storage(encoder_id, path)
                 return False
@@ -67,17 +49,32 @@ class StorageHandler:
             return False
 
     def get_storage_paths_from_config(self, encoder_id: str) -> List[str]:
-        """Get configured storage paths for an encoder
-        
-        Args:
-            encoder_id (str): ID of the encoder
-            
-        Returns:
-            List[str]: List of configured storage paths
-        """
+        """Get configured storage paths for an encoder"""
         paths = []
         for storage_type in self.storage_types.values():
-            # Check if path is configured in encoder settings
             if self._get_device_param(encoder_id, storage_type):
                 paths.append(storage_type)
         return paths
+
+    async def _monitor_restart_loop(self, encoder_id: str):
+        """Monitor encoder logs for restart patterns"""
+        log_data = await self._get_device_logs(encoder_id)
+        log_lines = log_data.splitlines()
+        
+        if len(log_lines) <= 10:
+            if any(keyword in line.lower() for line in log_lines for keyword in self.restart_keywords):
+                self.logger.critical(
+                    "Storage corrupt reboot cycle detected",
+                    extra={
+                        'encoder_id': encoder_id,
+                        'anomaly_type': 'Storage Reboot Cycle'
+                    }
+                )
+                self.metrics['storage_failures'].labels(encoder_id).inc()
+                await self._handle_corrupted_storage(encoder_id)
+                return
+
+        restart_count = self.metrics['restart_count'].labels(encoder_id).inc()
+        if restart_count > 3:
+            self.logger.warning(f"Encoder {encoder_id} has restarted {restart_count} times")
+            await self._take_preventive_action(encoder_id)
