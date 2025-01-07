@@ -72,4 +72,14 @@ class EncoderHealthMetrics:
             'Health check failures',
             ['encoder_id', 'failure_reason']
         )
-    } 
+    }
+    
+    # Network Latency Metrics
+    network_latency = Gauge(
+        'encoder_network_latency',
+        'Network latency in milliseconds',
+        ['encoder_id']
+    )
+    
+    def update_network_latency(self, encoder_id, latency):
+        self.network_latency.labels(encoder_id=encoder_id).set(latency) 

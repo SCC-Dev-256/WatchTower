@@ -11,8 +11,15 @@ from app.core.error_handling.decorators import handle_errors
 from app.core.database.models.notification_model import NotificationSettings, NotificationRule
 from app.monitoring.notification_logic import NotificationTemplates
 import logging
+from prometheus_client import Counter
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 logger = logging.getLogger(__name__)
+
+# Prometheus metrics
+email_send_attempts = Counter('email_send_attempts_total', 'Total email send attempts')
+email_send_success = Counter('email_send_success_total', 'Total successful email sends')
+email_send_failures = Counter('email_send_failures_total', 'Total failed email sends')
 
 class EmailNotificationService(BaseService):
     """Service for managing and sending email notifications"""
@@ -32,8 +39,10 @@ class EmailNotificationService(BaseService):
             raise ValueError("Email configuration incomplete")
 
     @handle_errors()
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=4, max=10))
     def send_email(self, recipients: List[str], subject: str, body_text: str, body_html: Optional[str] = None) -> bool:
         """Send an email using configured SMTP settings"""
+        email_send_attempts.inc()
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From'] = self.sender_email
@@ -45,13 +54,15 @@ class EmailNotificationService(BaseService):
 
         try:
             with smtplib.SMTP(self.smtp_server, self.smtp_port) as server:
-                server.starttls()
+                server.starttls()  # Ensure TLS/SSL is used
                 server.login(self.smtp_username, self.smtp_password)
                 server.send_message(msg)
             logger.info(f"Email sent successfully to {recipients}")
+            email_send_success.inc()
             return True
         except Exception as e:
-            logger.error(f"Failed to send email: {str(e)}")
+            logger.error(f"Failed to send email: {str(e)}", exc_info=True)
+            email_send_failures.inc()
             return False
 
     @handle_errors()

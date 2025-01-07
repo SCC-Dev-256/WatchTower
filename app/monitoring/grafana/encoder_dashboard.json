@@ -13,7 +13,7 @@
         ]
       },
       {
-        "title": "Streaming Status by Encoder",
+        "title": "Streaming Status by Encoder", 
         "type": "gauge",
         "targets": [
           {
@@ -24,7 +24,7 @@
       },
       {
         "title": "System Resources",
-        "type": "graph",
+        "type": "graph", 
         "targets": [
           {
             "expr": "system_cpu_usage_percent",
@@ -51,11 +51,61 @@
         "type": "stat",
         "targets": [
           {
-            "expr": "helo_cooling_events_total",
+            "expr": "helo_cooling_events_total", 
             "legendFormat": "{{encoder_id}} - {{reason}}"
+          }
+        ]
+      },
+      {
+        "title": "Video Input Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "encoder_video_input_status",
+            "legendFormat": "{{encoder_id}} - {{input_type}}"
+          }
+        ]
+      },
+      {
+        "title": "Audio Levels",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "encoder_audio_levels_db",
+            "legendFormat": "{{encoder_id}} - Channel {{channel}}"
+          }
+        ]
+      },
+      {
+        "title": "Storage Space",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "encoder_recording_space_bytes / 1024 / 1024 / 1024",
+            "legendFormat": "{{encoder_id}} - GB Remaining"
+          }
+        ]
+      },
+      {
+        "title": "Stream Uptime",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(encoder_stream_uptime_seconds[5m])",
+            "legendFormat": "{{encoder_id}}"
+          }
+        ]
+      },
+      {
+        "title": "Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(encoder_errors_total[5m])",
+            "legendFormat": "{{encoder_id}}"
           }
         ]
       }
     ]
   }
-} 
+}

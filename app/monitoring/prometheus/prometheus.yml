@@ -11,16 +11,42 @@ alerting:
         - targets: ['alertmanager:9093']
 
 scrape_configs:
-  - job_name: 'aja_encoders'
+  - job_name: 'critical_metrics'
     static_configs:
       - targets: ['api:5000']
-    metrics_path: '/metrics'
-    scrape_interval: 10s
+    metrics_path: '/metrics/critical'
+    scrape_interval: 5s
     metric_relabel_configs:
-      - source_labels: [encoder_name]
-        target_label: instance
-  - job_name: 'connection_metrics'
+      - source_labels: [__name__]
+        regex: 'encoder_(status|errors|streaming_status)'
+        action: keep
+
+  - job_name: 'connection_metrics' 
     static_configs:
       - targets: ['api:5000']
     metrics_path: '/metrics/connection'
-    scrape_interval: 10s 
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'helo_(connection_temperature|cooling_events|connection_load)'
+        action: keep
+
+  - job_name: 'system_metrics'
+    static_configs:
+      - targets: ['api:5000'] 
+    metrics_path: '/metrics/system'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '(cpu|memory|temperature|storage)_.*'
+        action: keep
+
+  - job_name: 'encoder_health'
+    static_configs:
+      - targets: ['api:5000']
+    metrics_path: '/metrics/health'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'encoder_(health|stream_health|response_time)'
+        action: keep

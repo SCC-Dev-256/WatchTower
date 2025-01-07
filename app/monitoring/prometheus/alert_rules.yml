@@ -87,13 +87,13 @@ groups:
           summary: "Stream interruption on {{ $labels.encoder_name }}"
 
       - alert: HighCPUUsage
-        expr: encoder_cpu_usage > 80
-        for: 5m
+        expr: encoder_cpu_usage > 85
+        for: 10m
         labels:
           severity: critical
         annotations:
-          summary: "High CPU usage on {{ $labels.encoder_name }}"
-          description: "CPU usage has exceeded 80% for more than 5 minutes."
+          summary: "High CPU usage on {{ $labels.encoder_id }}"
+          description: "CPU usage has exceeded 85% for more than 10 minutes. Consider scaling resources or optimizing processes."
 
       - alert: HighConnectionTemperature
         expr: helo_connection_temperature > 80
