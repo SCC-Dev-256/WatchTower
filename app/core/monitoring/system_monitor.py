@@ -6,14 +6,16 @@ from app.core.error_handling import handle_errors
 from app.core.database.models.encoder import EncoderMetrics
 from app.core.logging.system import LoggingSystem
 from app.core.database import db
+from app.core.error_handling.error_log_service import MonitoringErrorHandler
 
-class MonitoringSystem:
+class EncoderMonitoringSystem:
     """Unified monitoring system"""
     
     def __init__(self, app=None):
         self.app = app
         self.metrics = self._setup_metrics()
         self.logger = LoggingSystem(app)
+        self.error_handler = MonitoringErrorHandler(app)
         self.thresholds = {
             'cpu_usage': 80,  # %
             'memory_usage': 85,  # %
@@ -91,17 +93,7 @@ class MonitoringSystem:
             }
             
         except Exception as e:
-            self.metrics['errors'].labels(
-                encoder_id=encoder_id,
-                type='metric_collection'
-            ).inc()
-            self.logger.log_event(
-                'monitoring',
-                'metric_collection_error',
-                level='error',
-                encoder_id=encoder_id,
-                error=str(e)
-            )
+            await self.error_handler.handle_metric_error(encoder_id, 'metric_collection', e)
             raise
 
     async def _check_health(self, encoder_id: str) -> Dict:
@@ -137,17 +129,7 @@ class MonitoringSystem:
             }
             
         except Exception as e:
-            self.metrics['errors'].labels(
-                encoder_id=encoder_id,
-                type='health_check'
-            ).inc()
-            self.logger.log_event(
-                'monitoring',
-                'health_check_error',
-                level='error',
-                encoder_id=encoder_id,
-                error=str(e)
-            )
+            await self.error_handler.handle_metric_error(encoder_id, 'health_check', e)
             raise
 
     async def _process_alerts(self, encoder_id: str, 

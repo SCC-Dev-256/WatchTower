@@ -1,27 +1,29 @@
 from typing import Dict
 from datetime import datetime
-from app.core.error_handling.decorators import handle_errors
+from app.core.error_handling.error_log_service import MonitoringErrorHandler
 
 
 class PerformanceMonitor:
-    def __init__(self):
+    def __init__(self, app):
         self.metrics = {}
         self.thresholds = {
             'latency': 200,      # ms
             'message_rate': 100,  # messages per second
             'processing_time': 50 # ms
         }
+        self.error_handler = MonitoringErrorHandler(app)
 
-    @handle_errors()
-    def record_client_metrics(self, client_id: str, metrics: Dict):
+    async def record_client_metrics(self, client_id: str, metrics: Dict):
         """Record performance metrics for a client"""
-        self.metrics[client_id] = {
-            'timestamp': datetime.utcnow(),
-            'data': metrics
-        }
+        try:
+            self.metrics[client_id] = {
+                'timestamp': datetime.utcnow(),
+                'data': metrics
+            }
+        except Exception as e:
+            await self.error_handler.handle_performance_error(client_id, e)
 
-    @handle_errors()
-    def get_performance_metrics(self) -> Dict:
+    async def get_performance_metrics(self) -> Dict:
         """Get aggregated performance metrics"""
         return {
             'clients': len(self.metrics),

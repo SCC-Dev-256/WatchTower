@@ -30,4 +30,12 @@ class MonitoringErrorHandler(ErrorHandler):
         if alert_data.get('severity') == 'critical':
             return await self._handle_critical_alert_failure(error_data)
             
-        return await self._handle_normal_alert_failure(error_data) 
+        return await self._handle_normal_alert_failure(error_data)
+
+    # New method to handle performance errors
+    async def handle_performance_error(self, client_id: str, error: Exception) -> Dict:
+        """Handle performance monitoring errors"""
+        error_data = self._prepare_error_data(error, {
+            'client_id': client_id
+        })
+        return await self._handle_normal_metric_failure(error_data) 
