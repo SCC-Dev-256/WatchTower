@@ -40,8 +40,7 @@ from flask_caching import Cache
 cache = Cache()
 
 from app.config import get_config
-from app.core.monitoring.encoder_health_metrics import setup_metrics
-
+from app.core.monitoring.system_monitor import setup_metrics, MonitoringSystem
 from io import StringIO, BytesIO
 
 import csv
@@ -133,6 +132,14 @@ def create_app():
     # Initialize security manager
     security_manager = SecurityManager(app)
     
+    # Example usage: Configure security settings
+    security_manager.configure_security_policies()
+    
+    # Example usage: Enforce security checks
+    @app.before_request
+    def enforce_security():
+        security_manager.check_request_security(request)
+    
     # Register endpoints
     encoder_registry.register_with_flask(app)
     
@@ -142,11 +149,21 @@ def create_app():
     # Initialize device discovery
     discovery = HeloDiscovery(encoder_registry)
     
+    # Initialize Monitoring System
+    monitoring_system = MonitoringSystem(app)
+    
+    # Store monitoring system on app context
+    app.monitoring_system = monitoring_system
+    
     # Start device monitoring in background
     @app.before_first_request
     def start_monitoring():
         loop = asyncio.get_event_loop()
         loop.create_task(discovery.monitor_devices())
+        
+        # Start monitoring encoders
+        for encoder in HeloEncoder.query.all():
+            loop.create_task(monitoring_system.monitor_encoder(encoder.id))
     
     # Initialize SocketIO and services
     socketio.init_app(app)

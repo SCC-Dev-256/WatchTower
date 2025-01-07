@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
 from typing import Dict, Optional
 from datetime import datetime, timedelta
-from app.core.error_handling.central_error_manager import CentralErrorManager
-from app.core.error_handling.correlation_analyzer import ErrorCorrelationAnalyzer
-from app.core.error_handling.enhanced_metrics import EnhancedErrorMetrics
+from app.core.error_handling import CentralErrorManager
+from app.core.error_handling.analysis.correlation_analyzer import ErrorCorrelationAnalyzer
+from app.core.error_handling import EnhancedErrorMetrics
 
 error_reporting = Blueprint('error_reporting', __name__)
 

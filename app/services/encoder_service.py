@@ -14,14 +14,16 @@ from app.core.error_handling.analysis import ErrorAnalyzer
 from app.core.error_handling.performance_monitoring import PerformanceMonitor
 from app.core.error_handling.helo_error_tracking import ErrorTracking
 from app.core.error_handling.handlers import ErrorHandler
+from app.core.monitoring.system_monitor import MonitoringSystem
 
 
 class EncoderService(BaseService):
     """Encoder management service"""
 
-    def __init__(self):
+    def __init__(self, app):
         self.param_manager = AJAParameterManager()
         self._clients = {}  # Cache of AJA clients
+        self.monitoring_system = MonitoringSystem(app)
 
     @handle_errors()
     async def _op_get_encoder(self, encoder_id: str) -> Dict:
@@ -289,3 +291,8 @@ class EncoderService(BaseService):
                 'network': await client.get_network_stats(),
                 'media': await client.get_media_status()
             }
+
+    async def monitor_encoder(self, encoder_id: str):
+        # Use the new monitoring system
+        status = await self.monitoring_system.monitor_encoder(encoder_id)
+        return status

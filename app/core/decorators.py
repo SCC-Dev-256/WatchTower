@@ -1,6 +1,7 @@
 from functools import wraps
 from typing import Dict
 import logging
+from app.core.error_handling.ErrorLogging import ErrorLogger
 
 logger = logging.getLogger(__name__)
 
@@ -15,4 +16,15 @@ def handle_remediation(func):
         except Exception as e:
             logger.error(f"Remediation failed in {func.__name__}: {str(e)}")
             return {'success': False, 'error': str(e)}
+    return wrapper 
+
+def handle_errors(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            # Log the error using ErrorLogger
+            ErrorLogger().log_error(f"Error in {func.__name__}: {str(e)}")
+            raise
     return wrapper 
