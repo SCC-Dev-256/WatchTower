@@ -35,6 +35,26 @@
             "legendFormat": "Memory"
           }
         ]
+      },
+      {
+        "title": "Connection Temperature",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "helo_connection_temperature",
+            "legendFormat": "{{encoder_id}} - {{connection_id}}"
+          }
+        ]
+      },
+      {
+        "title": "Cooling Events",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "helo_cooling_events_total",
+            "legendFormat": "{{encoder_id}} - {{reason}}"
+          }
+        ]
       }
     ]
   }
