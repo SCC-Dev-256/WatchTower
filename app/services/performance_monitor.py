@@ -1,6 +1,6 @@
 from typing import Dict
 from datetime import datetime
-from app.core.error_handling.error_log_service import MonitoringErrorHandler
+from app.core.error_handling.central_error_manager import ErrorHandler
 
 
 class PerformanceMonitor:
@@ -11,7 +11,7 @@ class PerformanceMonitor:
             'message_rate': 100,  # messages per second
             'processing_time': 50 # ms
         }
-        self.error_handler = MonitoringErrorHandler(app)
+        self.error_handler = ErrorHandler(app)
 
     async def record_client_metrics(self, client_id: str, metrics: Dict):
         """Record performance metrics for a client"""

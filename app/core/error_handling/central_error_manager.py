@@ -4,7 +4,7 @@ import logging
 from prometheus_client import Counter, Gauge, Histogram
 from app.monitoring.error_analysis import ErrorAnalyzer
 from app.monitoring.error_tracking import ErrorTracker
-from app.core.error_handling.monitoring_handler import MonitoringErrorHandler
+from app.core.error_handling.handlers import MonitoringErrorHandler
 from app.core.error_handling.errors.error_types import ErrorType
 from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
 from app.core.helo.helo_commands import (
@@ -143,3 +143,4 @@ class CentralErrorManager:
         
         if analysis['severity'] in ['critical', 'high']:
             self.metrics['active_errors'].labels(analysis['severity']).inc() 
+

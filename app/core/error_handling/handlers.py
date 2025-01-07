@@ -4,7 +4,7 @@ import logging
 from flask import current_app
 from app.core.error_handling.errors.exceptions import APIError, EncoderError, AJAStreamError
 from .responses import APIResponse
-from app.monitoring.error_analysis import ErrorAnalyzer
+from app.core.error_handling.analysis.correlation_analyzer import ErrorAnalyzer
 from app.core.aja.aja_remediation_service import AJARemediationService
 from app.core.aja.client import AJAHELOClient
 from app.core.error_handling.decorators import handle_errors
@@ -44,6 +44,12 @@ class ErrorHandler:
 
         return response
 
+    def handle_certificate_error(self, error: Exception, context: Dict) -> Dict:
+        """Handle certificate errors"""
+        error_data = self._prepare_error_data(error, context)
+        self.logger.error(f"Certificate error: {error_data}")
+        return {'status': 'error', 'details': error_data}
+
     def _prepare_error_data(self, error: Exception, context: Optional[Dict]) -> Dict:
         """Prepare error data for logging and analysis"""
         return {
@@ -73,68 +79,3 @@ class ErrorHandler:
         if self.auto_remediation:
             return self.auto_remediation.attempt_remediation(error_data)
         return {}
-
-class StreamErrorHandler(ErrorHandler):
-    """Specialized handler for streaming-related errors"""
-    
-    def __init__(self, app=None):
-        super().__init__(app)
-        self.stream_thresholds = app.config.get('STREAM_THRESHOLDS', {})
-        self.aja_client = AJAHELOClient(app.config['AJA_IP'])
-
-    @handle_errors
-    async def handle_stream_error(self, encoder_id: str, stream_data: Dict, error: Exception) -> Dict:
-        """Handle streaming-related errors"""
-        # Log the error
-        self.log_error({
-            'encoder_id': encoder_id,
-            'error': str(error),
-            'stream_data': stream_data
-        }, error_type='stream', severity='critical')
-        
-        error_data = self._prepare_error_data(error, {
-            'encoder_id': encoder_id,
-            'stream_data': stream_data
-        })
-
-        # Analyze stream health
-        health_check = await self._check_stream_health(encoder_id)
-        if health_check['critical']:
-            return await self._handle_critical_stream_failure(error_data)
-
-        # Handle normal stream issues
-        return await self._handle_stream_issue(error_data)
-
-    async def _check_stream_health(self, encoder_id: str) -> Dict:
-        """Check stream health metrics"""
-        metrics = await self.app.encoder_service.get_metrics(encoder_id)
-        
-        return {
-            'critical': any(
-                metrics[key] > self.stream_thresholds[key]
-                for key in ['packet_loss', 'latency', 'jitter']
-                if key in metrics and key in self.stream_thresholds
-            ),
-            'metrics': metrics
-        }
-
-    async def _handle_critical_stream_failure(self, error_data: Dict) -> Dict:
-        """Handle critical stream failures"""
-        # Implement logic for handling critical failures
-        pass
-
-    async def _handle_stream_issue(self, error_data: Dict) -> Dict:
-        """Handle non-critical stream issues"""
-        # Implement logic for handling non-critical issues
-        pass
-
-    def _prepare_error_data(self, error: Exception, context: Dict) -> Dict:
-        """Prepare error data for logging and handling"""
-        return {
-            'error_message': str(error),
-            'context': context
-        }
-
-    def log_error(self, error_data: Dict, error_type: str, severity: str):
-        """Log error details"""
-        self.logger.log_error(error_data, error_type=error_type, severity=severity) 
