@@ -6,7 +6,7 @@ import asyncio
 from prometheus_client import Counter, Gauge, Histogram
 from app.services.encoder_manager import EncoderManager
 from app.core.connection.pool_manager import PoolManager
-from app.core.connection.helo_pool_error_handler import HeloErrorType, HeloErrorHandler
+from app.core.error_handling.central_error_manager import HeloErrorType, HeloErrorHandler
 
 class HeloConnectionMetrics:
     """HELO-specific connection metrics"""

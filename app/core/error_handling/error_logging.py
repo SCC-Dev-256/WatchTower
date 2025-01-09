@@ -4,7 +4,7 @@ import logging
 from prometheus_client import Counter, Histogram
 from app.core.enums import EncoderStatus, StreamingState, EventType
 from app.core.security.security_logger import SecurityEventLogger
-from app.core.connection.helo_pool_error_handler import HeloPoolErrorType
+from app.core.error_handling.central_error_manager import HeloErrorType
 from app.core.aja.aja_constants import ReplicatorCommands, MediaState
 from pathlib import Path
 
@@ -19,7 +19,7 @@ class ErrorMetrics:
 
 class ErrorLogger:
     """Centralized error logging system"""
-    
+
     def __init__(self, app=None):
         self.app = app
         self.log_path = Path(app.config.get('LOG_PATH', 'logs'))
@@ -188,7 +188,7 @@ class ErrorLogger:
         )
 
     def log_helo_error(self,
-                      error_type: HeloPoolErrorType,
+                      error_type: HeloErrorType,
                       encoder_id: str,
                       details: Dict[str, Any],
                       severity: str = 'error') -> None:
