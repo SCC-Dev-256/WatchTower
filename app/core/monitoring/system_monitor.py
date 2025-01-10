@@ -2,7 +2,7 @@ from typing import Dict, List, Optional
 from datetime import datetime, timedelta
 import asyncio
 from prometheus_client import Counter, Gauge, Histogram
-from app.core.error_handling import handle_errors
+from app.core.error_handling.decorators import handle_errors
 from app.core.database.models.encoder import EncoderMetrics
 from app.core.auditing_log.system import LoggingSystem
 from app.core.database import db
