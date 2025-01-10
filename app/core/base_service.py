@@ -1,8 +1,8 @@
 from typing import Optional, Dict, Any
 import logging
 from flask import current_app
-from .error_handling import handle_errors
-from .error_handling.exceptions import APIError
+from .error_handling.decorators import handle_errors
+from .error_handling.errors import APIError
 
 class BaseService:
     """Simplified base service with essential functionality"""

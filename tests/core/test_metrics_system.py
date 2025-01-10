@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, timedelta
-from app.core.metrics.system import MetricsSystem
+from app.core.error_handling.analysis.system import MetricsSystem
 
 @pytest.fixture
 async def metrics_system(app):

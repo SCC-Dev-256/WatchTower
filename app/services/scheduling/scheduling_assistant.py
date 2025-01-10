@@ -5,7 +5,7 @@ from enum import Enum
 import icalendar
 import requests
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager, AJAReplicatorCommands
-from app.core.helo.helo_params import HeloParameters, MediaState
+from app.core.aja.machine_logic.helo_params import HeloParameters, MediaState
 
 class ScheduledAction(Enum):
     RECORD = "record"

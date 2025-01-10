@@ -1,6 +1,6 @@
 from functools import wraps
 from flask import request
-from app.core.errors import ValidationError, handle_api_error
+from app.core.error_handling.errors import ValidationError, handle_api_error
 from app.core.auditing_log import setup_logging
 
 def validate_request(schema_class):

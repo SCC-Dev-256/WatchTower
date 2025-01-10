@@ -1,8 +1,8 @@
 from typing import Dict, List, Optional
 from datetime import datetime
 import asyncio
-from app.core.metrics.base_metrics import BaseMetricsService
-from app.core.metrics.collector import MetricsCollector
+from app.core.error_handling.analysis.base_metrics import BaseMetricsService
+from app.core.error_handling.analysis.aja_metric_collector import MetricsCollector
 from app.core.error_handling.decorators import handle_errors
 from app.core.error_handling.errors.exceptions import LoadBalancerError
 from app.services.encoder_service import EncoderService

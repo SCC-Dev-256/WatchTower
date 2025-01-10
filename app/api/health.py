@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify
 from app.monitoring.health_check import HealthCheckService
 from app.core.auth import require_api_key, roles_required
-from app.core.errors import error_handler
+from app.core.error_handling.decorators import error_handler
 
 health_bp = Blueprint('health', __name__)
 health_service = HealthCheckService()

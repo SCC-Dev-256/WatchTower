@@ -7,7 +7,7 @@ from app.core.error_handling.errors.error_types import ErrorType
 import requests
 import matplotlib.pyplot as plt
 from app.core.config.parameter_config import ParameterConfig
-from app.core.helo.helo_params import HeloParameters
+from app.core.aja.machine_logic.helo_params import HeloParameters
 
 class ErrorAnalyzer:
     """Advanced error correlation analysis"""

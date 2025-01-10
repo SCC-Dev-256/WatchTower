@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from app.services.scheduling.scheduling_assistant import SchedulingAssistant, ScheduledEvent, ScheduledAction
 from app.services.scheduling.date_scraper import DateScraper, MeetingInfo
-from app.core.helo.helo_params import HeloParameters
-from app.core.helo.helo_commands import recall_preset, set_recording_name, start_recording, stop_recording
+from app.core.aja.machine_logic.helo_params import HeloParameters
+from app.core.aja.machine_logic.helo_commands import recall_preset, set_recording_name, start_recording, stop_recording
 from flask_caching import Cache
 
 logger = logging.getLogger(__name__)

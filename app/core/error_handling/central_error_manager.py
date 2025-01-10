@@ -6,7 +6,7 @@ from prometheus_client import Counter, Gauge, Histogram
 from app.monitoring.error_analysis import ErrorAnalyzer
 from app.monitoring.error_tracking import ErrorTracker
 from app.core.error_handling.errors.error_types import ErrorType
-from app.core.helo.helo_commands import (
+from app.core.aja.machine_logic.helo_commands import (
     start_streaming, stop_streaming, verify_streaming, verify_recording
 )
 from app.core.error_handling.decorators import unified_error_handler

@@ -2,7 +2,7 @@ from typing import Dict
 import logging
 from app.core.error_handling.decorators import handle_errors
 from app.core.error_handling.errors.error_types import ErrorType
-from app.core.metrics.base_metrics import BaseMetricsService
+from app.core.error_handling.analysis.base_metrics import BaseMetricsService
 from app.core.error_handling.errors.exceptions import EncoderError
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import MediaState

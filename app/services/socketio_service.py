@@ -3,7 +3,7 @@ from flask import current_app, request
 from app.core.database.models.encoder import Encoder
 from ..services.metrics_analyzer import MetricsAnalyzer
 from app.core.error_handling import handle_errors
-from app.core.errors import APIError, EncoderError
+from app.core.error_handling.errors import APIError, EncoderError
 from datetime import datetime
 import time
 from app.core.database.models.encoder import Encoder

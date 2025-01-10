@@ -4,8 +4,8 @@ import asyncio
 from prometheus_client import Gauge, Counter, Histogram
 from app.core.error_handling.errors import EnhancedErrorMetrics
 from app.core.connection.prep_warmup_manager import HeloWarmupManager
-from app.core.helo.helo_params import HeloDeviceParameters, VideoGeometry
-from app.core.helo.helo_commands import HeloEncoder
+from app.core.aja.machine_logic.helo_params import HeloDeviceParameters, VideoGeometry
+from app.core.aja.machine_logic.helo_commands import HeloEncoder
 from app.core.database import db
 from app.core.error_handling.errors.exceptions import EncoderError
 
