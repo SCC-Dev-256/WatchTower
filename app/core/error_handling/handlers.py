@@ -9,6 +9,7 @@ from app.core.aja.aja_remediation_service import AJARemediationService
 from app.core.aja.client import AJAHELOClient
 from app.core.error_handling.decorators import handle_errors
 from app.core.error_handling.error_logging import ErrorLogger
+from app.core.error_handling.central_error_manager import CentralErrorManager
 
 class ErrorHandler:
     def __init__(self, app=None):
@@ -16,30 +17,26 @@ class ErrorHandler:
         self.logger = ErrorLogger(app)
         self.error_analyzer = ErrorAnalyzer(app) if app else None
         self.auto_remediation = AJARemediationService(app) if app else None
+        self.central_manager = CentralErrorManager(app)
 
     def handle_error(self, error: Exception, context: Optional[Dict] = None) -> tuple:
-        """Central error handling method"""
+        """Central error handling method using CentralErrorManager"""
         error_data = self._prepare_error_data(error, context)
         
-        # Log the error
-        self._log_error(error_data)
-        
-        # Analyze error if it's encoder-related
-        if isinstance(error, EncoderError):
-            analysis = self._analyze_error(error_data)
-            error_data['analysis'] = analysis
-            
-            # Attempt auto-remediation if enabled
-            if self.app.config.get('AUTO_REMEDIATION_ENABLED'):
-                remediation = self._attempt_remediation(error_data)
-                error_data['remediation'] = remediation
+        # Delegate error handling to CentralErrorManager
+        error_response = self.central_manager.process_error(
+            error, 
+            source='error_handler', 
+            context=context or {},
+            error_type=type(error).__name__
+        )
 
         # Prepare API response
         response = APIResponse(
             error=error,
-            error_data=error_data,
-            analysis=error_data.get('analysis'),
-            remediation=error_data.get('remediation')
+            error_data=error_response['error_entry'],
+            analysis=error_response.get('analysis'),
+            remediation=error_response.get('remediation')
         )
 
         return response

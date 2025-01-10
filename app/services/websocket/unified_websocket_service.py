@@ -4,7 +4,7 @@ import asyncio
 import logging
 from typing import Dict, Any, Set
 from collections import defaultdict
-from app.core.logging import setup_logging
+from app.core.auditing_log import setup_logging
 from app.services.websocket.websocket_auth import WebSocketAuthenticator
 from app.core.config.websocket_config import Config
 from app.core.auth import require_api_key, roles_required

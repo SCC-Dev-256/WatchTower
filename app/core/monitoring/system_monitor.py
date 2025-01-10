@@ -4,7 +4,7 @@ import asyncio
 from prometheus_client import Counter, Gauge, Histogram
 from app.core.error_handling import handle_errors
 from app.core.database.models.encoder import EncoderMetrics
-from app.core.logging.system import LoggingSystem
+from app.core.auditing_log.system import LoggingSystem
 from app.core.database import db
 from app.core.error_handling.handlers import MonitoringErrorHandler
 from app.core.error_handling.error_logging import ErrorLogger
@@ -15,7 +15,7 @@ class EncoderMonitoringSystem:
     def __init__(self, app=None):
         self.app = app
         self.metrics = self._setup_metrics()
-        self.logger = LoggingSystem(app)
+        self.logger = ErrorLogger(app)
         self.error_handler = MonitoringErrorHandler(app)
         self.thresholds = {
             'cpu_usage': 80,  # %
@@ -46,30 +46,38 @@ class EncoderMonitoringSystem:
     @handle_errors()
     async def monitor_encoder(self, encoder_id: str) -> Dict:
         """Comprehensive encoder monitoring"""
-        start_time = datetime.utcnow()
-        
-        # Parallel collection of metrics and health data
-        metrics_task = asyncio.create_task(self._collect_metrics(encoder_id))
-        health_task = asyncio.create_task(self._check_health(encoder_id))
-        
-        metrics, health_status = await asyncio.gather(metrics_task, health_task)
-        
-        # Process alerts based on collected data
-        alerts = await self._process_alerts(encoder_id, metrics, health_status)
-        
-        # Store monitoring data
-        await self._store_monitoring_data(encoder_id, metrics, health_status)
-        
-        # Update response time metric
-        response_time = (datetime.utcnow() - start_time).total_seconds()
-        self.metrics['response_time'].labels(encoder_id=encoder_id).observe(response_time)
-        
-        return {
-            'metrics': metrics,
-            'health': health_status,
-            'alerts': alerts,
-            'timestamp': datetime.utcnow()
-        }
+        try:
+            start_time = datetime.utcnow()
+            
+            # Parallel collection of metrics and health data
+            metrics_task = asyncio.create_task(self._collect_metrics(encoder_id))
+            health_task = asyncio.create_task(self._check_health(encoder_id))
+            
+            metrics, health_status = await asyncio.gather(metrics_task, health_task)
+            
+            # Process alerts based on collected data
+            alerts = await self._process_alerts(encoder_id, metrics, health_status)
+            
+            # Store monitoring data
+            await self._store_monitoring_data(encoder_id, metrics, health_status)
+            
+            # Update response time metric
+            response_time = (datetime.utcnow() - start_time).total_seconds()
+            self.metrics['response_time'].labels(encoder_id=encoder_id).observe(response_time)
+            
+            return {
+                'metrics': metrics,
+                'health': health_status,
+                'alerts': alerts,
+                'timestamp': datetime.utcnow()
+            }
+            
+        except Exception as e:
+            self.logger.log_error({
+                'encoder_id': encoder_id,
+                'error': str(e)
+            }, error_type='system', severity='error')
+            raise
 
     async def _collect_metrics(self, encoder_id: str) -> Dict:
         """Collect all encoder metrics"""

@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from typing import Dict, Any
 from app.core.connection.health_checker import HealthChecker
-from app.core.logging.system import LoggingSystem
+from app.core.auditing_log.system import LoggingSystem
 from prometheus_client import Gauge
 
 class HealthCheckService:

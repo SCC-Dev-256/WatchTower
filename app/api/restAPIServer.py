@@ -68,7 +68,7 @@ from app.services.websocket.websocket_auth import WebSocketAuthenticator
 
 from app.core.database.models.api_key_management import APIKey
 
-from app.core.logging.audit_logger import log_audit
+from app.core.auditing_log.audit_logger import log_audit
 
 # Define rate limits
 encoder_rate_limit = "10 per minute"  # Adjust the rate as needed

@@ -22,6 +22,13 @@ class StreamErrorHandler(ErrorHandler):
         central_manager = CentralErrorManager(self.app)
         error_response = await central_manager.handle_stream_error(encoder_id, stream_data, error)
 
+        # Log the error using ErrorLogger
+        self.logger.log_error({
+            'encoder_id': encoder_id,
+            'error': str(error),
+            'stream_data': stream_data
+        }, error_type='stream', severity='critical')
+
         # AJA-specific logic remains here
         health_check = await self._check_stream_health(encoder_id)
         if health_check['critical']:
