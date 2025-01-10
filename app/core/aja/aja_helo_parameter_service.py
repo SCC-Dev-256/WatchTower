@@ -3,6 +3,7 @@ from typing import Dict, Union, Optional, Any
 import csv
 from pathlib import Path
 from .aja_constants import AJAStreamParams
+from app.core.aja.machine_logic.helo_params import HeloParameters
 
 class AJAParameterType(Enum):
     STRING = "string"
@@ -53,10 +54,11 @@ class AJAParameterManager:
 
     def validate_value(self, param: str, value: Any) -> bool:
         """Validate parameter value against defined ranges"""
+        helo_params = HeloParameters().device_parameters  # Access current parameters
         if param in self.param_ranges:
             min_val, max_val = self.param_ranges[param]
             return min_val <= float(value) <= max_val
-        return True  # Parameters without ranges pass validation
+        return True
 
 class AJAReplicatorCommands:
     START_RECORDING = 1

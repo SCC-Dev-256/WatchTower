@@ -13,6 +13,9 @@ from app.core.error_handling.decorators import unified_error_handler
 from app.core.error_handling.Bitrate.optimize_bitrate import BitrateOptimizer
 from app.core.error_handling.media_storage_handler import StorageHandler, RestartMonitor
 from app.core.error_handling.error_logging import ErrorLogger, ErrorMetrics
+from app.core.aja.machine_logic.helo_params import HeloDeviceParameters, MediaState 
+from app.core.aja.translate_mach_logi.integrated_params import IntegratedEncoderParameters
+from app.core.error_handling.errors.exceptions import EncoderError 
 
 logger = logging.getLogger(__name__)
 
@@ -195,4 +198,40 @@ class CentralErrorManager:
             'analysis': analysis,
             'handled': True
         }
+
+    async def handle_error(self, error_type: str, encoder_id: str):
+        """Handle errors based on type and encoder parameters"""
+        try:
+            # Initialize parameters
+            integrated_params = IntegratedEncoderParameters(encoder_id)
+            device_params = integrated_params.device_params
+
+            # Log current parameters
+            logger.info(f"Handling {error_type} for encoder {encoder_id} with parameters: {device_params}")
+
+            # Call the appropriate handler
+            if error_type in self.error_handlers:
+                await self.error_handlers[error_type](integrated_params)
+            else:
+                logger.error(f"No handler for error type: {error_type}")
+
+        except Exception as e:
+            logger.error(f"Failed to handle error {error_type} for encoder {encoder_id}: {str(e)}")
+            raise EncoderError(f"Error handling failed for {encoder_id}", encoder_id=encoder_id)
+
+    async def handle_network_error(self, integrated_params: IntegratedEncoderParameters):
+        """Handle network-related errors"""
+        device_params = integrated_params.device_params
+        if not device_params.network_connected:
+            # Attempt to reconnect or switch network
+            logger.info(f"Attempting to reconnect encoder {integrated_params.encoder_id}")
+            # Implement reconnection logic here
+
+    async def handle_streaming_error(self, integrated_params: IntegratedEncoderParameters):
+        """Handle streaming-related errors"""
+        device_params = integrated_params.device_params
+        if device_params.media_state != MediaState.RECORD_STREAM:
+            # Attempt to restart streaming
+            logger.info(f"Attempting to restart streaming for encoder {integrated_params.encoder_id}")
+            # Implement streaming restart logic here
 

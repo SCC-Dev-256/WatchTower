@@ -5,7 +5,7 @@ from app.core.error_handling.errors.error_types import ErrorType
 from app.core.error_handling.analysis.base_metrics import BaseMetricsService
 from app.core.error_handling.errors.exceptions import EncoderError
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
-from app.core.aja.aja_constants import MediaState
+from app.core.aja.machine_logic.helo_params import HeloParameters, MediaState
 
 class AJARemediationService(BaseMetricsService):
     """Centralized AJA device remediation service"""
@@ -23,6 +23,7 @@ class AJARemediationService(BaseMetricsService):
         
         encoder_id = error_data.get('encoder_id')
         error_type = error_data.get('error_type')
+        helo_params = HeloParameters().device_parameters  # Load current parameters
 
         if not encoder_id or not error_type:
             raise EncoderError(

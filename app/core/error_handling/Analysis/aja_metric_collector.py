@@ -1,14 +1,16 @@
 from typing import Dict, Optional
-from app.core.aja.machine_logic.helo_params import HeloDeviceParameters
+from app.core.aja.machine_logic.helo_params import HeloDeviceParameters, HeloParameters
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager, AJAMediaState
+from app.core.error_handling.analysis.base_metrics import BaseMetricsService
 import logging
 
 logger = logging.getLogger(__name__)
 
-class MetricsCollector:
+class MetricsCollector(BaseMetricsService):
     """Collects metrics for analysis from AJA HELO devices."""
     
     def __init__(self):
+        super().__init__(service_name="AJA_HELO")
         self.parameter_manager = AJAParameterManager()
         self.media_states = {
             AJAMediaState.RECORD_STREAM: "Record-Stream",
@@ -27,7 +29,7 @@ class MetricsCollector:
         """
         try:
             if not helo_params:
-                helo_params = HeloDeviceParameters()
+                helo_params = HeloParameters().device_parameters
 
             # Collect streaming metrics
             streaming_metrics = {
@@ -62,6 +64,17 @@ class MetricsCollector:
                 }
             }
 
+            # Log and track metrics
+            await self.log_and_track(
+                message=f"Collected metrics for encoder {encoder_id}",
+                operation="collect_metrics",
+                metrics={
+                    'streaming': streaming_metrics,
+                    'network': network_metrics,
+                    'storage': storage_metrics
+                }
+            )
+
             return {
                 'streaming': streaming_metrics,
                 'network': network_metrics, 
@@ -74,4 +87,5 @@ class MetricsCollector:
 
         except Exception as e:
             logger.error(f"Error collecting metrics for encoder {encoder_id}: {str(e)}")
+            await self.record_error(error_type="collection_error")
             raise
