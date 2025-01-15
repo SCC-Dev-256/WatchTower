@@ -44,6 +44,15 @@ class CentralErrorManager:
         self.storage_handler = StorageHandler()
         self.restart_monitor = RestartMonitor()
         self.metrics = ErrorMetrics()
+        self.error_handlers = {
+            'network': self.handle_network_error,
+            'streaming': self.handle_streaming_error,
+            'recording': self.handle_recording_error,
+            'audio': self.handle_audio_error,
+            'video': self.handle_video_error,
+            'system': self.handle_system_error,
+            # Add more handlers as needed
+        }
 
     async def process_error(self, 
                           error: Exception, 
