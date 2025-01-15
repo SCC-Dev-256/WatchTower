@@ -1,8 +1,8 @@
 from contextlib import contextmanager
 from typing import Generator
 from sqlalchemy.orm import Session
-from app.database.session import SessionLocal
-from app.models.encoder import Base
+from app.core.database.session import SessionLocal
+from app.core.database.models.encoder import Base
 from sqlalchemy import create_engine
 import pytest
 
