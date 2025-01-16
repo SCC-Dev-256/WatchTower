@@ -5,14 +5,14 @@ A scalable REST API system for managing video encoders with automatic failover, 
 
 ## System Overview
 
-```mermaid
+mermaid
 graph TD
 Client[Client Applications] --> API[REST API Layer]
-API --> LB[Load Balancer]
+API --> FS[Failover System]
 API --> WS[WebSocket Server]
-LB --> E1[Primary Encoder]
-LB --> E2[Backup Encoder]
-LB --> Monitor[Health Monitor]
+FS --> E1[Primary Encoder]
+FS --> E2[Backup Encoder]
+FS --> Monitor[Health Monitor]
 Monitor --> Prometheus[Prometheus]
 Prometheus --> Grafana[Grafana Dashboards]
 Monitor --> AutoFix[Auto Remediation]
@@ -21,7 +21,16 @@ AutoFix --> E2
 E1 --> Stream[Stream Output]
 E2 --> Stream
 WS --> Client
-```
+Monitor --> NotificationSystem[Notification System]
+
+subgraph Notification Flow
+    NotificationSystem --> Email[Email Notifications]
+    NotificationSystem --> Telegram[Telegram Notifications]
+end
+
+API --> Recording[Recording Output]
+API --> ErrorAnalysis[Error Analysis]
+Monitor --> ThermalManagement[Thermal Management]
 
 ## Core Features
 
@@ -107,21 +116,21 @@ To configure the notification system, update the `NotificationSettings` in the d
 - Root cause analysis - **75% Complete**
 - Automated remediation suggestions - **80% Complete**
 
-### AJA Cablecast Integration (`app/services/aja_cablecast_integrate.py`)
+### AJA Cablecast Integration (`app\core\cablecast_IN_DEVELOPMENT\aja_cablecast_integrate.py`)
 
 - Facilitates integration with AJA Cablecast services.
 - Provides enhanced cablecast functionality and data handling.
 
-### Date Scraper Service (`app/services/date_scraper.py`)
+### Date Scraper Service (`app\services\scheduling\date_scraper.py`)
 
 - Scrapes meeting dates from city-specific sources.
 - Supports PDF scraping using `pdfplumber`.
 - Fallback mechanisms for non-standard formats.
 - Configurable and integrates with the city database for source management.
 
-### Load Balancer (`app/services/load_balancer.py`)
+### Backup Failover (`app\services\encoder_backup_fail_over.py`)
 
-Manages encoder distribution and health monitoring:
+Manages encoder backup failover distribution and health monitoring:
 
 - Assigns clients to optimal encoders based on load - **80% Complete**
 - Monitors encoder health metrics - **85% Complete**
