@@ -4,7 +4,7 @@ A scalable REST API system for managing video encoders with automatic failover, 
 
 ## System Overview 
 
-mermaid
+```mermaid
 graph TD
 Client[Client Applications] --> API[REST API Layer]
 API --> FS[Failover System]
@@ -30,6 +30,7 @@ end
 API --> Recording[Recording Output]
 API --> ErrorAnalysis[Error Analysis]
 Monitor --> ThermalManagement[Thermal Management]
+``` 
 
 ## Core Features
 
