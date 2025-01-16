@@ -7,46 +7,48 @@ A scalable REST API system for managing video encoders with automatic failover, 
 
 ```mermaid
 graph TD
-Client[Client Applications] --> API[REST API Layer]
-API --> FS[Failover System]
-API --> WS[WebSocket Server]
-FS --> E1[Primary Encoder]
-FS --> E2[Backup Encoder]
-FS --> Monitor[Health Monitor]
-Monitor --> Prometheus[Prometheus]
-Prometheus --> Grafana[Grafana Dashboards]
-Monitor --> AutoFix[Auto Remediation]
-AutoFix --> E1
-AutoFix --> E2
-E1 --> Stream[Stream Output]
-E2 --> Stream
-WS --> Client
-Monitor --> NotificationSystem[Notification System]
+    subgraph Client Side
+        Client[Client Applications] --> WS[WebSocket Server]
+    end
 
-subgraph Notification Flow
-    NotificationSystem --> Email[Email Notifications]
-    NotificationSystem --> Telegram[Telegram Notifications]
-    Email --> Cablecasters[Cablecasters]
-    Email --> Technician[Technician]
-    Email --> Engineer[Engineer]
-    Email --> Management[Management]
-    Telegram --> Cablecasters
-    Telegram --> Technician
-    Telegram --> Engineer
-    Telegram --> Management
-end
+    subgraph API Layer
+        API[REST API Layer] --> FS[Failover System]
+        API --> DatabaseSystem[Database System]
+        API --> ErrorAnalysis[Error Analysis]
+        API --> Recording[Local Recording Output]
+    end
 
-Grafana --> NEDDisplayPis[NED Display Pis]
+    subgraph Encoder Management
+        FS --> E1[Primary Encoder]
+        FS --> E2[Backup Encoder]
+        FS --> Monitor[Health Monitor]
+        Monitor --> AutoFix[Auto Remediation]
+        AutoFix --> E1
+        AutoFix --> E2
+        E1 --> Stream[Stream Output]
+        E2 --> Stream
+    end
 
-API --> DatabaseSystem[Database System]
-API --> Recording[Local Recording Output]
+    subgraph Monitoring
+        Monitor --> Prometheus[Prometheus]
+        Prometheus --> Grafana[Grafana Dashboards]
+        Grafana --> NEDDisplayPis[NED Display Pis]
+        Monitor --> ThermalManagement[Thermal Management]
+    end
 
-API --> ErrorAnalysis[Error Analysis]
-ErrorAnalysis --> DatabaseSystem
-ErrorAnalysis --> Logging[Logging]
-ErrorAnalysis --> API
-
-Monitor --> ThermalManagement[Thermal Management]
+    subgraph Notification Flow
+        Monitor --> NotificationSystem[Notification System]
+        NotificationSystem --> Email[Email Notifications]
+        NotificationSystem --> Telegram[Telegram Notifications]
+        Email --> Cablecasters[Cablecasters]
+        Email --> Technician[Technician]
+        Email --> Engineer[Engineer]
+        Email --> Management[Management]
+        Telegram --> Cablecasters
+        Telegram --> Technician
+        Telegram --> Engineer
+        Telegram --> Management
+    end
 ```
 
 ## Core Features
