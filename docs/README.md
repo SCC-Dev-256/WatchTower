@@ -7,11 +7,11 @@ A scalable REST API system for managing video encoders with automatic failover, 
 mermaid
 graph TD
 Client[Client Applications] --> API[REST API Layer]
-API --> LB[Load Balancer]
+API --> FS[Failover System]
 API --> WS[WebSocket Server]
-LB --> E1[Primary Encoder]
-LB --> E2[Backup Encoder]
-LB --> Monitor[Health Monitor]
+FS --> E1[Primary Encoder]
+FS --> E2[Backup Encoder]
+FS --> Monitor[Health Monitor]
 Monitor --> Prometheus[Prometheus]
 Prometheus --> Grafana[Grafana Dashboards]
 Monitor --> AutoFix[Auto Remediation]
@@ -20,6 +20,16 @@ AutoFix --> E2
 E1 --> Stream[Stream Output]
 E2 --> Stream
 WS --> Client
+Monitor --> NotificationSystem[Notification System]
+
+subgraph Notification Flow
+    NotificationSystem --> Email[Email Notifications]
+    NotificationSystem --> Telegram[Telegram Notifications]
+end
+
+API --> Recording[Recording Output]
+API --> ErrorAnalysis[Error Analysis]
+Monitor --> ThermalManagement[Thermal Management]
 
 ## Core Features
 
