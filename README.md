@@ -26,10 +26,26 @@ Monitor --> NotificationSystem[Notification System]
 subgraph Notification Flow
     NotificationSystem --> Email[Email Notifications]
     NotificationSystem --> Telegram[Telegram Notifications]
+    Email --> Cablecasters[Cablecasters]
+    Email --> Technician[Technician]
+    Email --> Engineer[Engineer]
+    Email --> Management[Management]
+    Telegram --> Cablecasters
+    Telegram --> Technician
+    Telegram --> Engineer
+    Telegram --> Management
 end
 
-API --> Recording[Recording Output]
+Grafana --> NEDDisplayPis[NED Display Pis]
+
+API --> DatabaseSystem[Database System]
+API --> Recording[Local Recording Output]
+
 API --> ErrorAnalysis[Error Analysis]
+ErrorAnalysis --> DatabaseSystem
+ErrorAnalysis --> Logging[Logging]
+ErrorAnalysis --> API
+
 Monitor --> ThermalManagement[Thermal Management]
 ```
 
