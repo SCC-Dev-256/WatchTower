@@ -7,6 +7,8 @@ from pathlib import Path
 from typing import Dict, List
 import requests
 import yaml
+from sqlalchemy import create_engine
+from logging.handlers import RotatingFileHandler
 
 class Bootstrapper:
     def __init__(self, config_url: str = None):
@@ -19,13 +21,14 @@ class Bootstrapper:
         self.config = {}
 
     def _setup_logging(self) -> logging.Logger:
-        """Configure logging"""
+        """Configure logging with rotation"""
+        handler = RotatingFileHandler('installer.log', maxBytes=5*1024*1024, backupCount=3)
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(levelname)s - %(message)s',
             handlers=[
                 logging.StreamHandler(),
-                logging.FileHandler('installer.log')
+                handler
             ]
         )
         return logging.getLogger('installer')
@@ -187,19 +190,29 @@ Flask-Session==0.5.0"""
             self.logger.error(f"Failed to install requirements: {str(e)}")
             return False
 
-    def setup_database(self) -> bool:
-        """Initialize database"""
+    def validate_database_connection(self) -> bool:
+        """Validate the database connection"""
         try:
-            # Import here to ensure dependencies are installed
-            from app.core.database import db
-            from flask import Flask
-            
-            app = Flask(__name__)
-            app.config['SQLALCHEMY_DATABASE_URI'] = self.config.get('database_url', 
-                'postgresql://localhost/encoder_manager')
-            
-            with app.app_context():
-                db.create_all()
+            engine = create_engine(self.config.get('database_url', 'postgresql://localhost/encoder_manager'))
+            connection = engine.connect()
+            connection.close()
+            self.logger.info("Database connection validated successfully.")
+            return True
+        except Exception as e:
+            self.logger.error(f"Database connection validation failed: {str(e)}")
+            return False
+
+    def setup_database(self) -> bool:
+        """Initialize database with Alembic migrations"""
+        try:
+            if not self.validate_database_connection():
+                return False
+            # Run Alembic migrations
+            subprocess.run([
+                'alembic',
+                'upgrade',
+                'head'
+            ], check=True)
             return True
         except Exception as e:
             self.logger.error(f"Failed to setup database: {str(e)}")
@@ -209,6 +222,7 @@ Flask-Session==0.5.0"""
         """Run the complete installation process with directory validation"""
         if not self.validate_directories():
             self.logger.error("Directory validation failed.")
+            print("Error: Directory validation failed. Please check the logs for more details.")
             return False
         steps = [
             (self.fetch_config, "Fetching configuration"),
@@ -220,11 +234,15 @@ Flask-Session==0.5.0"""
 
         for step_func, step_name in steps:
             self.logger.info(f"Starting: {step_name}")
+            print(f"Starting: {step_name}")
             if not step_func():
                 self.logger.error(f"Failed: {step_name}")
+                print(f"Error: {step_name} failed. Please check the logs for more details.")
                 return False
             self.logger.info(f"Completed: {step_name}")
+            print(f"Completed: {step_name}")
 
+        print("Setup completed successfully.")
         return True
 
 if __name__ == "__main__":

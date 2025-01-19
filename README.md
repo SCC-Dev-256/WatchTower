@@ -251,3 +251,46 @@ GET /health/detailed - **85% Complete**
 ## License
 
 [Your License Here]
+
+## Usage Documentation
+
+### Prerequisites
+- Python 3.8 or higher
+- PostgreSQL database
+- Alembic for database migrations
+- pip-tools for dependency management
+
+### Environment Variables
+- `CONFIG_URL`: URL to fetch the configuration file (default: `https://your-domain.com/installer-config.yml`)
+- `DATABASE_URL`: Database connection string (default: `postgresql://localhost/encoder_manager`)
+
+### Setup Instructions
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <repository-directory>
+   ```
+2. Install dependencies:
+   ```bash
+   pip install -r requirements/requirements.txt
+   ```
+3. Run the bootstrap script:
+   ```bash
+   python app/installer/bootstrap.py
+   ```
+
+## Troubleshooting Guide
+
+### Common Issues
+
+#### Configuration Fetch Failure
+- **Description**: The script fails to fetch the configuration from the specified URL.
+- **Solution**: Ensure the `CONFIG_URL` is correct and accessible. Check network connectivity.
+
+#### Database Connection Error
+- **Description**: The script cannot connect to the database.
+- **Solution**: Verify the `DATABASE_URL` is correct and the database server is running.
+
+#### Permission Denied
+- **Description**: The script encounters permission issues when creating directories or files.
+- **Solution**: Run the script with appropriate permissions or adjust directory permissions.
