@@ -5,6 +5,7 @@ from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
 from app.core.error_handling.decorators import handle_errors
 from app.core.auth import require_api_key, roles_required
+from abc import ABC, abstractmethod
 
 @dataclass
 class StreamValidationResult:
@@ -13,16 +14,54 @@ class StreamValidationResult:
     warnings: List[str]
     details: Dict
 
+class BaseValidator(ABC):
+    @abstractmethod
+    def validate(self, config: StreamingConfig) -> StreamValidationResult:
+        pass
+
+class ResolutionValidator(BaseValidator):
+    def __init__(self, valid_resolutions):
+        self.valid_resolutions = valid_resolutions
+
+    def validate(self, config: StreamingConfig) -> StreamValidationResult:
+        issues = []
+        if config.resolution not in self.valid_resolutions:
+            issues.append(f"Invalid resolution: {config.resolution}")
+        return StreamValidationResult(valid=len(issues) == 0, issues=issues, warnings=[], details={})
+
+class FPSValidator(BaseValidator):
+    def __init__(self, valid_fps):
+        self.valid_fps = valid_fps
+
+    def validate(self, config: StreamingConfig) -> StreamValidationResult:
+        warnings = []
+        if config.fps not in self.valid_fps:
+            closest_fps = min(self.valid_fps, key=lambda x: abs(x - config.fps))
+            warnings.append(f"Non-standard FPS: {config.fps}. Consider using {closest_fps}")
+        return StreamValidationResult(valid=True, issues=[], warnings=warnings, details={})
+
+class BitrateValidator(BaseValidator):
+    def __init__(self, min_bitrate, max_bitrate):
+        self.min_bitrate = min_bitrate
+        self.max_bitrate = max_bitrate
+
+    def validate(self, config: StreamingConfig) -> StreamValidationResult:
+        issues = []
+        if config.bitrate < self.min_bitrate:
+            issues.append(f"Bitrate too low: {config.bitrate/1_000_000}Mbps")
+        elif config.bitrate > self.max_bitrate:
+            issues.append(f"Bitrate too high: {config.bitrate/1_000_000}Mbps")
+        return StreamValidationResult(valid=len(issues) == 0, issues=issues, warnings=[], details={})
+
 class StreamConfigValidator:
     """Validate streaming configuration parameters"""
     
     def __init__(self):
-        self.valid_resolutions = [
+        self.resolution_validator = ResolutionValidator([
             "1920x1080", "1280x720", "854x480", "640x360"
-        ]
-        self.valid_fps = [24, 25, 29.97, 30, 50, 59.94, 60]
-        self.min_bitrate = 1_000_000  # 1 Mbps
-        self.max_bitrate = 20_000_000  # 20 Mbps
+        ])
+        self.fps_validator = FPSValidator([24, 25, 29.97, 30, 50, 59.94, 60])
+        self.bitrate_validator = BitrateValidator(1_000_000, 20_000_000)
         self.param_manager = AJAParameterManager()
 
     @handle_errors()
@@ -30,52 +69,19 @@ class StreamConfigValidator:
     @require_api_key
     def validate_config(self, config: StreamingConfig) -> StreamValidationResult:
         """Validate streaming configuration"""
-        issues = []
-        warnings = []
-        details = {}
+        results = [
+            self.resolution_validator.validate(config),
+            self.fps_validator.validate(config),
+            self.bitrate_validator.validate(config)
+        ]
 
-        # Validate Resolution
-        if config.resolution not in self.valid_resolutions:
-            issues.append(f"Invalid resolution: {config.resolution}")
-        
-        # Validate FPS
-        if config.fps not in self.valid_fps:
-            closest_fps = min(self.valid_fps, key=lambda x: abs(x - config.fps))
-            warnings.append(f"Non-standard FPS: {config.fps}. Consider using {closest_fps}")
-        
-        # Validate Bitrate
-        if config.bitrate < self.min_bitrate:
-            issues.append(f"Bitrate too low: {config.bitrate/1_000_000}Mbps")
-        elif config.bitrate > self.max_bitrate:
-            issues.append(f"Bitrate too high: {config.bitrate/1_000_000}Mbps")
-        
-        # Calculate recommended bitrate for resolution
-        recommended_bitrate = self._calculate_recommended_bitrate(
-            config.resolution, config.fps
-        )
-        if abs(config.bitrate - recommended_bitrate) > recommended_bitrate * 0.3:
-            warnings.append(
-                f"Bitrate {config.bitrate/1_000_000}Mbps may not be optimal for "
-                f"{config.resolution} at {config.fps}fps"
-            )
-        
-        # Check RTMP key format
-        if not self._validate_rtmp_key(config.rtmp_key):
-            issues.append("Invalid RTMP stream key format")
+        # Aggregate results
+        valid = all(result.valid for result in results)
+        issues = [issue for result in results for issue in result.issues]
+        warnings = [warning for result in results for warning in result.warnings]
+        details = {key: value for result in results for key, value in result.details.items()}
 
-        details = {
-            'recommended_bitrate': recommended_bitrate,
-            'bitrate_efficiency': config.bitrate / recommended_bitrate,
-            'resolution_supported': config.resolution in self.valid_resolutions,
-            'fps_supported': config.fps in self.valid_fps
-        }
-
-        return StreamValidationResult(
-            valid=len(issues) == 0,
-            issues=issues,
-            warnings=warnings,
-            details=details
-        )
+        return StreamValidationResult(valid=valid, issues=issues, warnings=warnings, details=details)
 
     def _calculate_recommended_bitrate(self, resolution: str, fps: float) -> int:
         """Calculate recommended bitrate based on resolution and fps"""

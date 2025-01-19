@@ -72,6 +72,74 @@ GET /monitoring/metrics
 GET /monitoring/alerts
 ```
 
+## API Documentation
+
+### Endpoints
+
+#### Get Encoder Health
+- **Endpoint**: `/health/encoder/{encoder_id}`
+- **Method**: GET
+- **Description**: Retrieve the health status of a specific encoder.
+- **Response**:
+  ```json
+  {
+    "status": "success",
+    "encoder_id": "123",
+    "health": {
+      "status": "healthy",
+      "metrics": {
+        "cpu_usage": 50,
+        "memory_usage": 60,
+        "temperature": 70,
+        "network_throughput": 100
+      },
+      "issues": []
+    }
+  }
+  ```
+
+#### Get Detailed Health
+- **Endpoint**: `/health/detailed`
+- **Method**: GET
+- **Description**: Retrieve detailed health status of all encoders.
+- **Response**:
+  ```json
+  {
+    "status": "success",
+    "encoders": {
+      "123": {
+        "status": "healthy",
+        "metrics": {
+          "cpu_usage": 50,
+          "memory_usage": 60,
+          "temperature": 70,
+          "network_throughput": 100
+        },
+        "issues": []
+      },
+      "456": {
+        "status": "unhealthy",
+        "metrics": {
+          "cpu_usage": 90,
+          "memory_usage": 80,
+          "temperature": 85,
+          "network_throughput": 50
+        },
+        "issues": ["high_temperature"]
+      }
+    }
+  }
+  ```
+
+### Expected Payloads
+- **Health Check Request**: No payload required for GET requests.
+
+### Response Codes
+- **200 OK**: Request was successful.
+- **400 Bad Request**: Invalid request parameters.
+- **404 Not Found**: Encoder not found.
+- **500 Internal Server Error**: An error occurred on the server.
+
 ## Integration Examples
 
 ### WebSocket Monitoring
