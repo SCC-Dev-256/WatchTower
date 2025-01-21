@@ -11,7 +11,9 @@ from dateutil.relativedelta import relativedelta
 import re
 from dateutil import parser as date_parser
 from flask_caching import Cache
-from app.services.scheduling.website_db.citysite import CitySiteDB
+from app.core.cablecast_IN_DEVELOPMENT.google_calendar import create_google_calendar_event
+from app.core.cablecast_IN_DEVELOPMENT.aja_cablecast_integrate import create_cablecast_event
+from app.core.cablecast_IN_DEVELOPMENT.scheduling.website_db.citysite import CitySiteDB
 
 logger = logging.getLogger(__name__)
 
@@ -36,29 +38,26 @@ class DateScraper:
         self.cache = cache
 
     def fetch_meetings(self, source_name: str) -> List[MeetingInfo]:
-        """Fetch meetings from a specific source"""
-        try:
-            source = self.city_db.get_website(source_name)
-            if not source:
-                logger.error(f"Unknown source: {source_name}")
-                return []
-                
-            cache_key = f"meetings_{source_name}"
-            cached_meetings = self.cache.get(cache_key)
-            if cached_meetings:
-                return cached_meetings
-
-            if source.source_type == MeetingSource.RSS:
-                meetings = self._parse_rss(source.url)
-            else:
-                meetings = self._scrape_calendar(source.url)
-
-            self.cache.set(cache_key, meetings, timeout=3600)  # Cache for 1 hour
-            return meetings
-                
-        except Exception as e:
-            logger.error(f"Error fetching meetings from {source_name}: {str(e)}")
+        """Fetch meetings from a specific source and create Google Calendar and Cablecast events."""
+        
+        # Determine the source type and fetch meetings accordingly
+        if source_name == "rss":
+            meetings = self._parse_rss("your_rss_feed_url")  # Replace with actual RSS feed URL
+        elif source_name == "calendar":
+            meetings = self._scrape_calendar("your_calendar_url")  # Replace with actual calendar URL
+        elif source_name == "birchwood":
+            meetings = self.fetch_birchwood_meetings()
+        else:
+            logger.warning(f"Unknown source name: {source_name}")
             return []
+
+        # Create Google Calendar events for each meeting
+        for meeting in meetings:
+            create_google_calendar_event(meeting)  # Create Google Calendar event for each meeting
+            # Assuming you have a function to create Cablecast events
+            create_cablecast_event(meeting)  # Create Cablecast event for each meeting
+
+        return meetings
 
     def _parse_rss(self, url: str) -> List[MeetingInfo]:
         """Parse meetings from RSS feed"""
