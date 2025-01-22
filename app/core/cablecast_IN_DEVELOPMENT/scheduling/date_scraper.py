@@ -42,13 +42,22 @@ class DateScraper:
         """Fetch meetings from a specific source and create Google Calendar and Cablecast events."""
         
         # Determine the source type and fetch meetings accordingly
-        if source_name == "rss":
+        if source_name == "rss":    
+            #Mahtomedi
             meetings = self._parse_rss("https://www.ci.mahtomedi.mn.us/RSSFeed.aspx?ModID=65&CID=All-0")  # Mahtomedi RSS feed
+            #White Bear Township    
+            meetings = self._parse_rss("https://www.ci.white-bear-township.mn.us/common/modules/iCalendar/iCalendar.aspx?catID=14&feed=calendar")  # White Bear Township  
         elif source_name == "calendar":
-            meetings = self._scrape_calendar("https://www.lakeelmo.gov/calendar_app/index.html")  # Lake Elmo
-            meetings += self._scrape_calendar("https://www.whitebearlake.org/meetings")  # White Bear Lake
+            #Lake Elmo
+            meetings = self._scrape_calendar("https://www.lakeelmo.gov/calendar_app/index.html")  
+            #White Bear Lake
+            meetings += self._scrape_calendar("https://www.whitebearlake.org/meetings")  
         elif source_name == "icalendar":
+            #Lake Elmo
+            meetings = self._parse_ical("https://cms8.revize.com/revize/plugins/calendar/editpages/export_events.jsp?webspaceId=lakeelmomn&CAL_ID=1&timezoneid=America/Chicago")  # Mahtomedi
+            #White Bear Township    
             meetings = self._parse_ical("https://www.ci.white-bear-township.mn.us/common/modules/iCalendar/iCalendar.aspx?catID=14&feed=calendar")  # White Bear Township  
+            #Oakdale
             meetings += self._parse_ical("https://www.oakdalemn.gov/common/modules/iCalendar/iCalendar.aspx?catID=23&feed=calendar")  # Oakdale
         elif source_name == "birchwood":
             meetings = self.fetch_birchwood_meetings()
@@ -95,21 +104,18 @@ class DateScraper:
         soup = BeautifulSoup(response.content, 'html.parser')
         
         # Look for common calendar event containers
-        events = soup.find_all(['div', 'article'], class_=lambda x: x and 
-            ('event' in x.lower() or 'calendar' in x.lower()))
+        events = soup.find_all(['div', 'article'], class_=lambda x: x and ('event' in x.lower() or 'calendar' in x.lower()))
             
         for event in events:
             try:
-                # Extract meeting details - adjust selectors based on site structure
-                title = event.find(['h3', 'h4', 'div'], class_='title')
-                date_elem = event.find(['span', 'div'], class_='date')
-                location = event.find(['span', 'div'], class_='location')
-                desc = event.find(['div', 'p'], class_='description')
+                # Extract meeting details using target words
+                title = event.find(['h3', 'h4', 'div'], text=re.compile(r'Event|Meeting|Session'))
+                date_elem = event.find(['span', 'div'], text=re.compile(r'Date|Time|Starts|Ends'))
+                location = event.find(['span', 'div'], text=re.compile(r'Location|Venue|Address'))
+                desc = event.find(['div', 'p'], text=re.compile(r'Details|Description|Overview|Agenda'))
                 
                 if title and date_elem:
-                    # Parse date from text - adjust format as needed
                     date = self._parse_date(date_elem.text.strip())
-                    
                     meeting = MeetingInfo(
                         title=title.text.strip(),
                         date=date,
