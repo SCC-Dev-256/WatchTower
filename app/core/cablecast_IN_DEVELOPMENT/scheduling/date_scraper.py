@@ -1,7 +1,7 @@
 import feedparser
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Dict, Optional
 import logging
 from dataclasses import dataclass
@@ -14,6 +14,7 @@ from flask_caching import Cache
 from app.core.cablecast_IN_DEVELOPMENT.google_calendar import create_google_calendar_event
 from app.core.cablecast_IN_DEVELOPMENT.aja_cablecast_integrate import create_cablecast_event
 from app.core.cablecast_IN_DEVELOPMENT.scheduling.website_db.citysite import CitySiteDB
+import icalendar
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +43,13 @@ class DateScraper:
         
         # Determine the source type and fetch meetings accordingly
         if source_name == "rss":
-            meetings = self._parse_rss("your_rss_feed_url")  # Replace with actual RSS feed URL
+            meetings = self._parse_rss("https://www.ci.mahtomedi.mn.us/RSSFeed.aspx?ModID=65&CID=All-0")  # Mahtomedi RSS feed
         elif source_name == "calendar":
-            meetings = self._scrape_calendar("your_calendar_url")  # Replace with actual calendar URL
+            meetings = self._scrape_calendar("https://www.lakeelmo.gov/calendar_app/index.html")  # Lake Elmo
+            meetings += self._scrape_calendar("https://www.whitebearlake.org/meetings")  # White Bear Lake
+        elif source_name == "icalendar":
+            meetings = self._parse_ical("https://www.ci.white-bear-township.mn.us/common/modules/iCalendar/iCalendar.aspx?catID=14&feed=calendar")  # White Bear Township  
+            meetings += self._parse_ical("https://www.oakdalemn.gov/common/modules/iCalendar/iCalendar.aspx?catID=23&feed=calendar")  # Oakdale
         elif source_name == "birchwood":
             meetings = self.fetch_birchwood_meetings()
         else:
@@ -149,8 +154,14 @@ class DateScraper:
             meetings = self._scrape_pdf(source.url)
 
             if not meetings:
-                # If no meetings were found in the PDF, generate based on a regular pattern
-                start_date = datetime.now().replace(day=2, hour=18, minute=45)  # Example start date
+                # If no meetings were found in the PDF, generate based on regular schedule
+                # Meetings are held on 2nd Tuesday of each month at 6:45pm
+                start_date = datetime.now().replace(day=1, hour=18, minute=45)
+                # Find second Tuesday by adding days until we hit a Tuesday (weekday 1)
+                while start_date.weekday() != 1:  # 1 = Tuesday
+                    start_date += timedelta(days=1)
+                # Add 7 days to get to second Tuesday
+                start_date += timedelta(days=7)
                 meetings = self._generate_regular_meetings(start_date, 12, source.url)  # Generate for the next 12 months
 
             return meetings
@@ -205,4 +216,29 @@ class DateScraper:
                 source_type=MeetingSource.CALENDAR
             )
             meetings.append(meeting)
+        return meetings
+
+    def _parse_ical(self, url: str) -> List[MeetingInfo]:
+        """Parse meetings from an iCalendar file."""
+        meetings = []
+        response = requests.get(url)
+        cal = icalendar.Calendar.from_ical(response.content)
+
+        for component in cal.walk():
+            if component.name == "VEVENT":
+                try:
+                    meeting = MeetingInfo(
+                        title=str(component.get('summary')),
+                        date=component.get('dtstart').dt,
+                        location=str(component.get('location')),
+                        meeting_type=self._extract_meeting_type(str(component.get('summary'))),
+                        description=str(component.get('description')),
+                        source_url=url,
+                        source_type=MeetingSource.CALENDAR
+                    )
+                    meetings.append(meeting)
+                except Exception as e:
+                    logger.warning(f"Failed to parse iCalendar event: {str(e)}")
+                    continue
+
         return meetings
