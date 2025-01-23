@@ -2,7 +2,7 @@ from enum import Enum
 from typing import Dict, Union, Optional, Any
 import csv
 from pathlib import Path
-from .aja_constants import AJAStreamParams
+from app.core.aja.aja_constants import AJAParameters, AJAStreamParams  
 from app.core.aja.machine_logic.helo_params import HeloParameters
 
 class AJAParameterType(Enum):
