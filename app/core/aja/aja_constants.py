@@ -20,3 +20,14 @@ class AJAParameters:
     STREAM_HEALTH = "eParamID_StreamHealth"
     NETWORK_BANDWIDTH = "eParamID_NetworkBandwidth"
     DROPPED_FRAMES = "eParamID_DroppedFrames"
+
+class AJAStreamParams:
+    """AJA Stream Parameters"""
+    STREAM_URL = "streamUrl"
+    BITRATE = "bitrate"
+    RESOLUTION = "resolution"
+    FRAME_RATE = "frameRate"
+    AUDIO_CHANNELS = "audioChannels"
+    AUDIO_BITRATE = "audioBitrate"
+    PROTOCOL = "protocol"
+    ENCODING = "encoding"
