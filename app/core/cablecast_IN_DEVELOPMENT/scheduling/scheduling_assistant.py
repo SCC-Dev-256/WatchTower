@@ -6,7 +6,7 @@ import icalendar
 import requests
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager, AJAReplicatorCommands
 from app.core.aja.machine_logic.helo_params import HeloParameters, MediaState
-from app.core.cablecast_IN_DEVELOPMENT.scheduling.date_scraper import DateScraper
+from app.core.cablecast_IN_DEVELOPMENT.scheduling.date_scraper import DateScraper, MeetingInfo
 
 class ScheduledAction(Enum):
     RECORD = "record"
