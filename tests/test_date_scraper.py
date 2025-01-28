@@ -1,6 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock
 from app.core.cablecast_IN_DEVELOPMENT.scheduling.date_scraper import DateScraper, MeetingInfo, MeetingSource
+import os
+import sys
+
+print("Current Working Directory:", os.getcwd())
+print("Python Path:", sys.path)
 
 @pytest.fixture
 def mock_cache():

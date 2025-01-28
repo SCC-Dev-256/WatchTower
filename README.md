@@ -294,3 +294,13 @@ GET /health/detailed - **85% Complete**
 #### Permission Denied
 - **Description**: The script encounters permission issues when creating directories or files.
 - **Solution**: Run the script with appropriate permissions or adjust directory permissions.
+
+## Dependency Graph
+
+### JSON Representation
+The dependency tree in JSON format can be found [here](dependencies.json).
+
+### Visual Dependency Graph
+![Dependency Graph](dependencies.png)
+
+This graph represents the dependencies of the Encoder Manager System, showing how different components are interconnected.
