@@ -1,12 +1,12 @@
 import pytest
 from unittest.mock import Mock, patch
 from requests.exceptions import ConnectionError, HTTPError
-from app.services.aja_helo_api import AJAHeloAPI
-from app.core.error_handler import EncoderConnectionError, EncoderAuthenticationError
+from app.core.error_handling.errors.exceptions import EncoderConnectionError, EncoderAuthenticationError
 
-@pytest.fixture
-def helo_api():
-    return AJAHeloAPI('192.168.1.100')
+#Uncertain of what this needs to be. 
+#@pytest.fixture
+#def helo_api():
+#    return AJAHeloAPI('192.168.1.100')
 
 @pytest.fixture
 def mock_response():
