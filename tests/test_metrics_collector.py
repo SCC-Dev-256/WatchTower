@@ -1,9 +1,9 @@
 import pytest
 from datetime import datetime
 from unittest.mock import Mock, patch
-from app.services.metrics_collector import MetricsCollector
-from app.models.encoder import Encoder
-from app.models.encoder_metric import EncoderMetrics
+from app.core.error_handling.analysis.aja_metric_collector import MetricsCollector
+from app.schemas import Encoder
+
 
 @pytest.fixture
 def app():

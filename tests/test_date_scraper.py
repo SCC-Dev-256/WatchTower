@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from app.core.cablecast_IN_DEVELOPMENT.scheduling.date_scraper import DateScraper, MeetingInfo, MeetingSource
+from app.core.cablecast_IN_DEVELOPMENT.scheduling.date_scraper import DateScraper, MeetingSource
 import os
 import sys
 

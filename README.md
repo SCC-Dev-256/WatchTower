@@ -304,3 +304,44 @@ The dependency tree in JSON format can be found [here](dependencies.json).
 ![Dependency Graph](dependencies.png)
 
 This graph represents the dependencies of the Encoder Manager System, showing how different components are interconnected.
+
+## Updating the Dependency Graph Image
+
+To update the visual representation of the dependencies for the Encoder Manager System, follow these steps:
+
+### Prerequisites
+- Ensure you have `pipdeptree` and `Graphviz` installed on your system.
+- Make sure you have Python and the necessary packages installed.
+
+### Steps to Regenerate the Dependency Graph
+
+1. **Generate the JSON Representation**:
+   Run the following command to create or update the `dependencies.json` file:
+   ```bash
+   pipdeptree --json-tree > dependencies.json
+   ```
+
+2. **Generate the DOT File**:
+   Create or update the `dependencies.dot` file using:
+   ```bash
+   pipdeptree --graph-output dot > dependencies.dot
+   ```
+
+3. **Convert the DOT File to PNG**:
+   Use Graphviz to convert the DOT file into a PNG image:
+   ```bash
+   dot -Tpng dependencies.dot -o dependencies.png
+   ```
+
+4. **Verify the Image**:
+   Open `dependencies.png` to ensure the graph is generated correctly.
+
+5. **Commit Changes**:
+   If you are using version control (e.g., Git), make sure to commit the updated `dependencies.json` and `dependencies.png` files:
+   ```bash
+   git add dependencies.json dependencies.png
+   git commit -m "Update dependency graph image"
+   ```
+
+### Note
+Make sure to follow these steps whenever you add or update dependencies in your project to keep the documentation up to date.

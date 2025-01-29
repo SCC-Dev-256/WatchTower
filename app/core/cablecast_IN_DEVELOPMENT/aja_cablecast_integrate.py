@@ -1,8 +1,7 @@
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
-from app.core.cablecast_IN_DEVELOPMENT.scheduling.scheduling_assistant import SchedulingAssistant, ScheduledEvent, ScheduledAction
-from app.core.cablecast_IN_DEVELOPMENT.scheduling.date_scraper import DateScraper, MeetingInfo
+from app.core.cablecast_IN_DEVELOPMENT import SchedulingAssistant, ScheduledEvent, ScheduledAction, DateScraper, MeetingInfo
 from app.core.aja.machine_logic.helo_params import HeloParameters
 from app.core.aja.machine_logic.helo_commands import recall_preset, set_recording_name, start_recording, stop_recording
 from flask_caching import Cache
