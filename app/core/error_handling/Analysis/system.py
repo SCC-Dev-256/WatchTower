@@ -1,10 +1,7 @@
 from typing import Dict, List
 from datetime import datetime
 from app.core.error_handling import handle_errors
-from app.core.database import db
-from app.core.database.models.encoder import EncoderMetrics
-from app.core.error_handling.analysis.analyzer import MetricsAnalyzer
-from app.core.error_handling.analysis.aja_metric_collector import MetricsCollector
+from app.core import db, MetricsCollector, EncoderMetrics, MetricsAnalyzer
 
 class MetricsSystem:
     """Consolidated metrics system"""

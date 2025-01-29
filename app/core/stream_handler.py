@@ -1,5 +1,5 @@
 from app.core.error_handling.decorators import handle_errors
-from app.core.aja.client import AJAHELOClient
+from app.core.aja import AJAHELOClient
 from app.core.error_handling.error_logging import ErrorLogger
 from typing import Dict
 

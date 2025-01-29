@@ -1,8 +1,7 @@
 from typing import Dict, Type
 from .base_service import BaseService
-from .interfaces import EncoderServiceInterface, MetricsInterface
 from app.services.encoder_service import EncoderService
-from app.services.metrics_service import MetricsService
+from app.core.metrics.metrics_service import MetricsService
 from app.services.stream_manager import StreamManager
 from app.services.notification_service import NotificationService
 

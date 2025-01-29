@@ -1,7 +1,7 @@
 from flask_socketio import SocketIO, emit, disconnect
 from flask import current_app, request
 from app.core.database.models.encoder import Encoder
-from ..services.metrics_analyzer import MetricsAnalyzer
+from ..core.metrics.metrics_analyzer import MetricsAnalyzer
 from app.core.error_handling import handle_errors
 from app.core.error_handling.errors import APIError, EncoderError
 from datetime import datetime
@@ -13,7 +13,7 @@ from app.core.database.models.api_key_management import APIKey
 from app.core.database.models.log_entry import LogEntry
 from app.core.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
-from app.services.metrics_analyzer import MetricsAnalyzer
+from app.core.metrics.metrics_analyzer import MetricsAnalyzer
 from app.services.websocket.websocket_security import WebSocketSecurity
 from app.services.websocket.websocket_rate_limiter import WebSocketRateLimiter
 from app.services.websocket.websocket_auth import Authenticator

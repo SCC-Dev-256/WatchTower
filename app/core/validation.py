@@ -1,8 +1,8 @@
 from functools import wraps
 from flask import request
 from app.core.error_handling.errors import ValidationError, handle_api_error
-from app.core.auditing_log import setup_logging
-
+from app.core.auditing_log import LoggingSystem
+ 
 def validate_request(schema_class):
     def decorator(f):
         @wraps(f)

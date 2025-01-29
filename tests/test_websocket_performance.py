@@ -4,7 +4,7 @@ import socketio
 import time
 from concurrent.futures import ThreadPoolExecutor
 from statistics import mean, stdev
-from ..app.services.metrics_analyzer import MetricsAnalyzer
+from ..app.core.metrics.metrics_analyzer import MetricsAnalyzer
 
 class WebSocketLoadTest:
     def __init__(self, base_url, num_clients=100):

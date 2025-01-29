@@ -1,9 +1,9 @@
 from flask import Blueprint, jsonify, request
 from app.core.error_handling import handle_errors
-from app.core.database.models.encoder import HeloEncoder
 from app.core.auth import require_api_key
-from app.services.encoder_service import EncoderService
 from app.core.security.rbac import roles_required, permission_required
+from app.services.encoder_service import EncoderService
+from app.core.database.models.encoder import HeloEncoder
 
 encoder_bp = Blueprint('encoders', __name__, url_prefix='/api/encoders')
 encoder_service = EncoderService()

@@ -1,7 +1,5 @@
 from typing import Dict, Any
-from app.core.database.models.encoder import HeloEncoder
-from app.core.error_handling.errors.exceptions import EncoderError
-from app.core.config.parameter_config import ParameterConfig
+from app.core import HeloEncoder, EncoderError, ParameterConfig
 
 class HealthChecker:
     """Utility class for checking the health of encoders."""

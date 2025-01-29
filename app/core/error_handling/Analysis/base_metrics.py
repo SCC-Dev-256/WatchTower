@@ -2,7 +2,7 @@ from typing import Dict, Any, Optional
 from datetime import datetime
 import logging
 from prometheus_client import Counter, Gauge, Histogram
-from app.core.error_handling.central_error_manager import ErrorType
+from app.core.error_handling import ErrorType
 
 class BaseMetricsService:
     """Base class for standardized metrics collection"""

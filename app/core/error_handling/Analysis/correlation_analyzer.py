@@ -3,11 +3,11 @@ from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 from collections import defaultdict
-from app.core.error_handling.errors.error_types import ErrorType
 import requests
 import matplotlib.pyplot as plt
-from app.core.config.parameter_config import ParameterConfig
-from app.core.aja.machine_logic.helo_params import HeloParameters
+from app.core.config import ParameterConfig
+from app.core.aja import HeloParameters
+from app.core.error_handling import ErrorType
 
 class ErrorAnalyzer:
     """Advanced error correlation analysis"""

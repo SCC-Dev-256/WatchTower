@@ -3,8 +3,8 @@ import asyncio
 import logging
 from datetime import datetime, timedelta
 from prometheus_client import Counter, Gauge, Histogram
-from app.core.connection.helo_pool_manager import HeloPoolManager
-from app.core.error_handling.error_logging import ErrorMetrics
+from app.core.connection import HeloPoolManager
+from app.core.error_handling import ErrorMetrics
 
 class ConnectionWarmupMetrics:
     """Metrics for connection warmup monitoring"""
