@@ -135,7 +135,8 @@ flask-talisman>=1.1.0
 psutil==5.9.5
 flask-socketio==5.3.6
 rq==1.15.1
-Flask-Session==0.5.0"""
+Flask-Session==0.5.0
+pytest==7.4.3"""
 
             # Custom dependency sets
             development = [

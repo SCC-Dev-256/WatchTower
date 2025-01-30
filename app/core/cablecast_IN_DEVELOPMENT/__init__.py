@@ -7,8 +7,8 @@ from .scheduling import (
     SchedulingAssistant,
     ScheduledAction
 )
-from .cablecast_schemas import Show, ScheduleItem, Format, Media
-from .cablecast_constants import (
+from .machine_language.cablecast_schemas import Show, ScheduleItem, Format, Media
+from .machine_language.cablecast_constants import (
     CablecastEndpoints,
     CablecastStreamStates,
     CablecastVODStates,
