@@ -1,6 +1,6 @@
 # config/ssl_config.py
 from flask_talisman import Talisman
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, List
 import logging
 
@@ -11,7 +11,7 @@ class SSLConfig:
     """SSL/TLS Configuration settings for the application"""
     force_https: bool = True
     session_cookie_secure: bool = True
-    content_security_policy: Dict[str, List[str]] = {
+    content_security_policy: Dict[str, List[str]] = field(default_factory=lambda: {
         "default-src": ["'self'"],
         "script-src": ["'self'"],
         "style-src": ["'self'"],
@@ -19,19 +19,19 @@ class SSLConfig:
         "connect-src": ["'self'"],
         "frame-ancestors": ["'none'"],
         "form-action": ["'self'"]
-    }
+    })
     hsts_max_age: int = 31536000  # 1 year in seconds
     hsts_include_subdomains: bool = True
     hsts_preload: bool = True
     referrer_policy: str = "strict-origin-when-cross-origin"
-    public_key_pins: Dict[str, str] = {
+    public_key_pins: Dict[str, str] = field(default_factory=lambda: {
         "pin-sha256": [
             "base64+primary==",
             "base64+backup=="
         ],
         "max-age": "2592000",  # 30 days
         "includeSubDomains": True
-    }
+    })
 
 def configure_ssl(app, config: SSLConfig = SSLConfig()):
     """
