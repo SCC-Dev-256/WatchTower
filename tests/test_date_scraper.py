@@ -1,9 +1,10 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from app.core.cablecast_IN_DEVELOPMENT.scheduling.date_scraper import DateScraper, MeetingSource
-import os
-import sys
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from app.core.cablecast.scheduling.date_scraper import DateScraper, MeetingSource
 print("Current Working Directory:", os.getcwd())
 print("Python Path:", sys.path)
 

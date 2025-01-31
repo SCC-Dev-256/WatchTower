@@ -1,4 +1,3 @@
-from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
@@ -221,6 +220,8 @@ class HeloParameters:
     """Encapsulates HELO device parameters for analysis"""
 
     def __init__(self):
+        # Import AJAParameterManager here to avoid circular import
+        from app.core.aja.aja_helo_parameter_service import AJAParameterManager
         self.parameter_manager = AJAParameterManager()
         self.device_parameters = HeloDeviceParameters()
         self._load_parameters()

@@ -7,7 +7,7 @@ from .aja import (
 
 from .auditing_log import log_audit, log_role_change, LoggingSystem
 
-from .cablecast_IN_DEVELOPMENT import (
+from .cablecast import (
     DateScraper, MeetingInfo, MeetingSource, CablecastScheduler,
     ScheduledEvent, SchedulingAssistant, ScheduledAction, Show,
     ScheduleItem, Format, Media, CablecastEndpoints, CablecastStreamStates,

@@ -1,10 +1,11 @@
+import sys
 from enum import Enum
 from typing import Dict, Union, Optional, Any
 import csv
 from pathlib import Path
-from app.core.aja.aja_constants import AJAParameters, AJAStreamParams  
-from app.core.aja.machine_logic.helo_params import HeloParameters
+from app.core.aja.aja_constants import AJAParameters, AJAStreamParams
 
+# Avoid circular import by using a delayed import pattern
 class AJAParameterType(Enum):
     STRING = "string"
     INTEGER = "integer"
@@ -54,6 +55,9 @@ class AJAParameterManager:
 
     def validate_value(self, param: str, value: Any) -> bool:
         """Validate parameter value against defined ranges"""
+        # Import HeloParameters here to avoid circular import
+        from app.core.aja.machine_logic.helo_params import HeloParameters
+        
         helo_params = HeloParameters().device_parameters  # Access current parameters
         if param in self.param_ranges:
             min_val, max_val = self.param_ranges[param]

@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
-from app.core.cablecast_IN_DEVELOPMENT import Show, ScheduleItem, Format, Media
-from app.core.cablecast_IN_DEVELOPMENT.machine_language.cablecast_constants import (
+from app.core.cablecast import Show, ScheduleItem, Format, Media
+from app.core.cablecast.machine_language.cablecast_constants import (
     MEDIA_NAME, FORMAT_LOCATION, RUN_DATE_TIME, RUN_BUMP, RUN_LOCK,
     BUG_TEXT, CRAWL_TEXT, CG_EXEMPT, RUN_STATUS
 )
