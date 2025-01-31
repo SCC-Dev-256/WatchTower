@@ -1,12 +1,13 @@
 from datetime import datetime
-from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy import Column, String, DateTime, Boolean, Integer
 from app.core.database import Base
 
 class APIKey(Base):
     """API Key model for authentication"""
     __tablename__ = 'api_keys'
 
-    key = Column(String(64), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    key = Column(String, unique=True, nullable=False)
     name = Column(String(128), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_used_at = Column(DateTime)
