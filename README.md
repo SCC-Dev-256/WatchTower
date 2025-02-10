@@ -51,9 +51,9 @@ graph TD
     end
 
     %% New connections
-    ErrorAnalysis --> DatabaseSystem
-    Monitor --> ErrorAnalysis
-    DatabaseSystem --> Monitor
+    ErrorAnalysis <<->>	 DatabaseSystem
+    ErrorAnalysis <<->>	 Monitor
+    DatabaseSystem <<->> Monitor
 ```
 
 
