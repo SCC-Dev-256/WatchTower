@@ -52,9 +52,10 @@ graph TD
 
     %% New connections
     ErrorAnalysis --> DatabaseSystem
-    ErrorAnalysis --> Monitor
+    Monitor --> ErrorAnalysis
     DatabaseSystem --> Monitor
 ```
+
 
 ## Core Features
 
