@@ -51,10 +51,11 @@ graph TD
     end
 
     %% New connections
-    ErrorAnalysis <<->>	 DatabaseSystem
-    ErrorAnalysis <<->>	 Monitor
-    DatabaseSystem <<->> Monitor
+    ErrorAnalysis --- DatabaseSystem
+    ErrorAnalysis --- Monitor
+    DatabaseSystem --- Monitor
 ```
+
 
 
 ## Core Features
