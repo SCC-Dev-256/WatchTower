@@ -49,6 +49,11 @@ graph TD
         Telegram --> Engineer
         Telegram --> Management
     end
+
+    %% New connections
+    ErrorAnalysis --> DatabaseSystem
+    ErrorAnalysis --> Monitor
+    DatabaseSystem --> Monitor
 ```
 
 ## Core Features
@@ -99,7 +104,6 @@ To configure the notification system, update the `NotificationSettings` in the d
 - Temperature monitoring - **80% Complete**
 - Network link error detection - **90% Complete**
 - Dropped frames behavior tracking - **85% Complete**
-- Fan speed monitoring - **75% Complete**
 - Stream state validation - **85% Complete**
 
 ### Connection Health Monitoring
