@@ -34,3 +34,22 @@ pytest-mock==3.11.0
 # Production-specific requirements
 gunicorn==21.2.0
 psycopg2-binary==2.9.9  # Use binary to avoid pg_config issues
+
+# Additional dependencies
+requests==2.31.0
+sqlalchemy==2.0.21
+google-api-python-client==2.92.0
+google-auth==2.23.0
+icalendar==5.0.7
+pdfplumber==0.9.0
+feedparser==6.0.10
+beautifulsoup4==4.12.2
+torch==2.0.1
+numpy==1.25.2
+soundfile==0.12.1
+librosa==0.10.0
+faster-whisper==0.1.0
+whisper-timestamped==0.1.0
+mlx-whisper==0.1.0
+diart==0.1.0
+rx==3.2.0

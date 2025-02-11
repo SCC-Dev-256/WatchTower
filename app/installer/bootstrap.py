@@ -15,7 +15,7 @@ class Bootstrapper:
         self.config_url = config_url or os.getenv('CONFIG_URL', 'https://your-domain.com/installer-config.yml')
         self.logger = self._setup_logging()
         self.root_dir = Path(__file__).parent.parent.parent
-        self.requirements_dir = self.root_dir / 'requirements'
+        self.requirements_dir = self.root_dir / 'requirements/files'
         self.requirements = []
         self.directories = []
         self.config = {}
@@ -110,63 +110,10 @@ class Bootstrapper:
                 "pip-tools"
             ])
 
-            # Create base requirements.in
-            base_reqs = """# Core dependencies
-Flask==2.3.3
-Flask-CORS>=4.0.0
-requests==2.26.0
-aiohttp>=3.8.0
-python-json-logger>=2.0.0
-PyYAML>=6.0.1
-SQLAlchemy==2.0.36
-flask-jwt-extended==4.5.3
-Flask-Limiter[redis]==3.5.0
-python-dotenv>=1.0.0
-cryptography>=41.0.0
-pydantic==2.4.2
-Flask-Pydantic>=0.11.0,<0.12.0
-flask-openapi3==3.0.1
-Flask-Caching==2.1.0
-redis==5.0.1
-Flask-SQLAlchemy==3.1.1
-python-telegram-bot>=20.7
-gunicorn==21.2.0
-flask-talisman>=1.1.0
-psutil==5.9.5
-flask-socketio==5.3.6
-rq==1.15.1
-Flask-Session==0.5.0
-pytest==7.4.3"""
-
-            # Custom dependency sets
-            development = [
-                "black==23.12.1",
-                "flake8==7.0.0",
-                "ipython==8.15.0",
-                "pip-tools==6.11.0"
-            ]
-            testing = [
-                "pytest==7.4.3",
-                "pytest-cov==4.1.0",
-                "pytest-mock==3.11.0"
-            ]
-            production = [
-                "gunicorn==21.2.0",
-                "psycopg2-binary==2.9.9"  # For Linux
-            ]
-
-            reqs_in = self.requirements_dir / 'requirements.in'
-            reqs_in.write_text(base_reqs)
-
-            # Write custom dependency sets
-            (self.requirements_dir / 'development.in').write_text("\n".join(development))
-            (self.requirements_dir / 'testing.in').write_text("\n".join(testing))
-            (self.requirements_dir / 'production.in').write_text("\n".join(production))
-
             # Compile requirements
             subprocess.run([
                 'pip-compile',
-                str(reqs_in),
+                str(self.requirements_dir / 'requirements.in'),
                 f'--output-file={str(self.requirements_dir)}/requirements.txt'
             ], check=True)
 
