@@ -50,7 +50,7 @@ icalendar==5.0.7
 pdfplumber==0.9.0
 feedparser==6.0.10
 beautifulsoup4==4.12.2
-torch==2.0.1+cpu
+torch==2.6.0
 numpy==1.25.2
 soundfile==0.12.1
 librosa==0.10.0
