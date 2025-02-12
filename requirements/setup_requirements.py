@@ -2,6 +2,7 @@
 import os
 import subprocess
 from pathlib import Path
+import sys
 
 
 def validate_requirements_directory() -> bool:
@@ -49,7 +50,7 @@ icalendar==5.0.7
 pdfplumber==0.9.0
 feedparser==6.0.10
 beautifulsoup4==4.12.2
-torch==2.0.1
+torch==2.0.1+cpu
 numpy==1.25.2
 soundfile==0.12.1
 librosa==0.10.0
@@ -69,15 +70,27 @@ pytest-mock==3.11.0
     (requirements_dir / 'requirements.in').write_text(base_content)
 
 def compile_requirements():
-    # Ensure pip-tools is installed
-    subprocess.run(['pip', 'install', 'pip-tools'], check=True)
-    
-    # Compile requirements
-    subprocess.run([
-        'pip-compile',
-        'requirements/files/requirements.in',
-        '--output-file=requirements/files/requirements.txt'
-    ], check=True)
+    """Compile the requirements.in file into requirements.txt."""
+    try:
+        subprocess.run([
+            sys.executable, '-m', 'piptools', 'compile', 'requirements/files/requirements.in',
+            '--output-file=requirements/files/requirements.txt'
+        ], check=True)
+        print("Requirements compiled successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error compiling requirements: {e}")
+        sys.exit(1)
+
+def install_requirements():
+    """Install the compiled requirements.txt file."""
+    try:
+        subprocess.run([
+            sys.executable, '-m', 'pip', 'install', '-r', 'requirements/files/requirements.txt'
+        ], check=True)
+        print("Requirements installed successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error installing requirements: {e}")
+        sys.exit(1)
 
 def main():
     print("Setting up requirements files...")
@@ -87,6 +100,8 @@ def main():
     create_requirements_files()
     print("Compiling requirements...")
     compile_requirements()
+    print("Installing requirements...")
+    install_requirements()
     print("\nRequirements setup complete!")
     print("You can now use:")
     print("pip-sync requirements/files/requirements.txt  # for all environments")
