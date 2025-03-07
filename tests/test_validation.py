@@ -1,5 +1,5 @@
 import pytest
-from app.schemas.encoder_schemas import EncoderCreate, EncoderControl
+from app.encoder_schemas import EncoderCreate, EncoderControl
 from pydantic import ValidationError
 
 def test_encoder_create_validation():

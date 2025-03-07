@@ -1,5 +1,5 @@
 from typing import List
-from app.core.error_handling.error_logging import ErrorLogger
+from app.core.error_handling import ErrorLogger
 
 
 class StorageHandler:
@@ -21,7 +21,7 @@ class StorageHandler:
             self.logger.info(f"Successfully dismounted {path} for encoder {encoder_id}")
             
             # Monitor for restart after dismount
-            await self._monitor_restart_loop(encoder_id)
+            await self.monitor_restart_loop(encoder_id)
             
         except Exception as e:
             self.logger.error(f"Failed to dismount {path} for encoder {encoder_id}: {str(e)}")
@@ -34,7 +34,7 @@ class StorageHandler:
             await self._set_device_param(encoder_id, mounted_param, True)
             
             # Monitor for restart after mount attempt
-            await self._monitor_restart_loop(encoder_id)
+            await self.monitor_restart_loop(encoder_id)
             
             if self.metrics['restart_count'].labels(encoder_id).get() > 2:
                 self.logger.warning(f"Storage {path} causing restarts on {encoder_id}, dismounting")
@@ -56,7 +56,7 @@ class StorageHandler:
                 paths.append(storage_type)
         return paths
 
-    async def _monitor_restart_loop(self, encoder_id: str):
+    async def monitor_restart_loop(self, encoder_id: str):
         """Monitor encoder logs for restart patterns"""
         log_data = await self._get_device_logs(encoder_id)
         log_lines = log_data.splitlines()

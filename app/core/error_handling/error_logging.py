@@ -31,26 +31,26 @@ class ErrorLogger:
         """Setup different log handlers"""
         self.loggers = {
             # API and Connection Errors
-            'api': self._setup_logger('api', 'api.log'),
-            'connection': self._setup_logger('connection', 'connection.log'),
-            'pool': self._setup_logger('pool', 'pool.log'),
+            'api': self.setup_logger('api', 'api.log'),
+            'connection': self.setup_logger('connection', 'connection.log'),
+            'pool': self.setup_logger('pool', 'pool.log'),
             
             # Encoder and Stream Errors
-            'encoder': self._setup_logger('encoder', 'encoder.log'),
-            'stream': self._setup_logger('stream', 'stream.log'),
-            'helo': self._setup_logger('helo', 'helo.log'),
+            'encoder': self.setup_logger('encoder', 'encoder.log'),
+            'stream': self.setup_logger('stream', 'stream.log'),
+            'helo': self.setup_logger('helo', 'helo.log'),
             
             # Security Errors
-            'security': self._setup_logger('security', 'security.log'),
-            'ssl': self._setup_logger('ssl', 'ssl.log'),
-            'auth': self._setup_logger('auth', 'auth.log'),
+            'security': self.setup_logger('security', 'security.log'),
+            'ssl': self.setup_logger('ssl', 'ssl.log'),
+            'auth': self.setup_logger('auth', 'auth.log'),
             
             # System Errors
-            'system': self._setup_logger('system', 'system.log'),
-            'critical': self._setup_logger('critical', 'critical.log')
+            'system': self.setup_logger('system', 'system.log'),
+            'critical': self.setup_logger('critical', 'critical.log')
         }
 
-    def _setup_logger(self, name: str, filename: str) -> logging.Logger:
+    def setup_logger(self, name: str, filename: str) -> logging.Logger:
         """Setup individual logger with enhanced formatting"""
         logger = logging.getLogger(f'error_handling.{name}')
         logger.setLevel(logging.INFO)

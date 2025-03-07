@@ -1,4 +1,4 @@
-from app.core.error_handling.Bitrate import BitrateOptimizer
+from app.core.error_handling import BitrateOptimizer
 
 class BitrateControlManager:
     def __init__(self, logger, get_device_param, get_current_frame, prev_frames):

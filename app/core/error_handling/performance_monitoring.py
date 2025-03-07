@@ -1,6 +1,6 @@
 from typing import Dict
 from datetime import datetime
-from app.core.error_handling.decorators import handle_errors
+from app.core.error_handling import HandleErrors
 
 
 class PerformanceMonitor:

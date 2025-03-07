@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from collections import defaultdict
 from app.core.error_handling.errors.error_types import ErrorType
 from app.core.error_handling.errors.exceptions import EncoderError
-from app.core.error_handling.analysis import ErrorAnalyzer
+from app.core.error_handling import ErrorAnalyzer
 from app.core.error_handling.performance_monitoring import PerformanceMonitor
 
 class HeloErrorTracker:
@@ -31,25 +31,25 @@ class HeloErrorTracker:
         self.error_history[encoder_id].append(error_entry)
         
         # Update consecutive error count
-        if self._is_similar_to_last_error(encoder_id, error_entry):
+        if self.is_similar_to_last_error(encoder_id, error_entry):
             self.consecutive_errors[encoder_id] += 1
         else:
             self.consecutive_errors[encoder_id] = 1
 
         # Analyze error pattern
-        analysis = await self._analyze_error_pattern(encoder_id, error_entry)
+        analysis = await self.analyze_error_pattern(encoder_id, error_entry)
         
         # Track performance impact
-        await self._track_performance_impact(encoder_id, error_entry)
+        await self.track_performance_impact(encoder_id, error_entry)
         
         return {
             'error_entry': error_entry,
             'analysis': analysis,
             'consecutive_count': self.consecutive_errors[encoder_id],
-            'requires_escalation': self._check_escalation_needed(encoder_id)
+            'requires_escalation': self.check_escalation_needed(encoder_id)
         }
 
-    def _create_error_entry(self, encoder_id: str, error: Exception, context: Dict) -> Dict:
+    def create_error_entry(self, encoder_id: str, error: Exception, context: Dict) -> Dict:
         """Create detailed error entry"""
         error_type = (
             error.details.get('error_type')
@@ -86,7 +86,7 @@ class HeloErrorTracker:
             'timestamp': datetime.utcnow()
         }
 
-    def _is_similar_to_last_error(self, encoder_id: str, current_error: Dict) -> bool:
+    def is_similar_to_last_error(self, encoder_id: str, current_error: Dict) -> bool:
         """Check if error is similar to the last one"""
         if not self.error_history[encoder_id]:
             return False
@@ -99,7 +99,7 @@ class HeloErrorTracker:
             and time_diff <= self.thresholds['time_window']
         )
 
-    async def _analyze_error_pattern(self, encoder_id: str, error_entry: Dict) -> Dict:
+    async def analyze_error_pattern(self, encoder_id: str, error_entry: Dict) -> Dict:
         """Analyze error patterns using ErrorAnalyzer"""
         return await self.error_analyzer.analyze_error({
             'encoder_id': encoder_id,
@@ -108,7 +108,7 @@ class HeloErrorTracker:
             'context': error_entry['context']
         })
 
-    async def _track_performance_impact(self, encoder_id: str, error_entry: Dict):
+    async def track_performance_impact(self, encoder_id: str, error_entry: Dict):
         """Track performance impact of errors"""
         self.performance_monitor.record_client_metrics(encoder_id, {
             'error_count': self.consecutive_errors[encoder_id],
@@ -118,7 +118,7 @@ class HeloErrorTracker:
             'last_error_type': error_entry['error_type']
         })
 
-    def _check_escalation_needed(self, encoder_id: str) -> bool:
+    def check_escalation_needed(self, encoder_id: str) -> bool:
         """Check if error requires escalation"""
         return (
             self.consecutive_errors[encoder_id] >= self.thresholds['consecutive_errors']

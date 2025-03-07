@@ -1,17 +1,19 @@
 from typing import Dict, List, Optional
 from datetime import datetime
 import asyncio
-from app.core.error_handling.analysis.base_metrics import BaseMetricsService
-from app.core.error_handling.analysis.aja_metric_collector import MetricsCollector
-from app.core.error_handling.decorators import handle_errors
+from app.core.error_handling import MetricsService, MetricsCollector
+from app.core.error_handling.decorators import HandleErrors
 from app.core.error_handling.errors.exceptions import LoadBalancerError
 from app.services.encoder_service import EncoderService
 import logging
+from app.core.aja.aja_device import AJADevice
+from app.core.aja.aja_constants import AJAParameters
 
-class LoadBalancer(BaseMetricsService):
-    def __init__(self, metrics_collector: MetricsCollector):
+class LoadBalancer(MetricsService):
+    def __init__(self, metrics_collector: MetricsCollector, aja_device: AJADevice):
         super().__init__('load_balancer')
         self.metrics_collector = metrics_collector
+        self.aja_device = aja_device
         self.failover_groups = {}
         self.logger = logging.getLogger(__name__)
 
@@ -25,17 +27,17 @@ class LoadBalancer(BaseMetricsService):
                 # Check temperature and other metrics
                 if health['metrics']['temperature'] > 80:
                     self.logger.warning(f"High temperature on encoder {encoder_id}: {health['metrics']['temperature']}°C")
-                if health['metrics']['network_link_error_count'] > 10:
-                    self.logger.warning(f"High network link error count on encoder {encoder_id}: {health['metrics']['network_link_error_count']}")
-                if health['metrics']['dropped_frames_behavior'] == 'Stop':
-                    self.logger.warning(f"Dropped frames behavior set to stop on encoder {encoder_id}")
+                if health['metrics'][AJAParameters.NETWORK_BANDWIDTH] > 10:
+                    self.logger.warning(f"High network bandwidth usage on encoder {encoder_id}: {health['metrics'][AJAParameters.NETWORK_BANDWIDTH]}")
+                if health['metrics'][AJAParameters.DROPPED_FRAMES] > 10:
+                    self.logger.warning(f"High dropped frames on encoder {encoder_id}: {health['metrics'][AJAParameters.DROPPED_FRAMES]}")
 
                 if not health['healthy'] or 'issues' in health:
                     self.logger.warning(f"Unhealthy stream on encoder {encoder_id}: {health.get('issues', 'Unknown issues')}")
-                    if await self._should_trigger_failover(health):
+                    if await self.should_trigger_failover(health):
                         await self._initiate_failover(encoder_id)
 
-    async def _should_trigger_failover(self, health: Dict) -> bool:
+    async def should_trigger_failover(self, health: Dict) -> bool:
         """Determine if failover should be triggered based on health data"""
         # Critical issues that require immediate failover
         critical_issues = {'high_frame_drop', 'encoder_overload', 'buffer_underrun'}
@@ -50,7 +52,7 @@ class LoadBalancer(BaseMetricsService):
             
         return False
 
-    async def _handoff_stream(self, from_id: str, to_id: str) -> bool:
+    async def handoff_stream(self, from_id: str, to_id: str) -> bool:
         """Handle streaming handoff between encoders"""
         try:
             # Get streaming config
@@ -58,7 +60,7 @@ class LoadBalancer(BaseMetricsService):
             config = group['streaming_config']
             
             # Ensure backup is configured correctly
-            if not await self._sync_encoder_config(from_id, to_id):
+            if not await self.sync_encoder_config(from_id, to_id):
                 return False
                 
             # Start streaming on backup
@@ -90,24 +92,18 @@ class LoadBalancer(BaseMetricsService):
             self.logger.error(f"Stream handoff failed: {str(e)}")
             return False
 
-    async def _sync_encoder_config(self, primary_id: str, backup_id: str) -> bool:
+    async def sync_encoder_config(self, primary_id: str, backup_id: str) -> bool:
         """Synchronize streaming configuration between encoders"""
         try:
             group = self.failover_groups[primary_id]
             config = group['streaming_config']
-            
+
             backup_encoder = await self.encoder_service.get_encoder(backup_id)
-            await backup_encoder.configure_stream(
-                rtmp_key=config.rtmp_key,
-                resolution=config.resolution,
-                bitrate=config.bitrate,
-                fps=config.fps,
-                start_stream=False
-            )
-            
+            await self.aja_device.set_param(AJAParameters.STREAMING_PROFILE, config)
+
             group['last_sync'] = datetime.utcnow()
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to sync encoder config: {str(e)}")
             return False

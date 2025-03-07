@@ -4,7 +4,7 @@ import logging
 from flask import current_app
 from app.core.error_handling.errors.exceptions import APIError, EncoderError, AJAStreamError
 from .responses import APIResponse
-from app.core.error_handling.analysis.correlation_analyzer import ErrorAnalyzer
+from app.core.error_handling import ErrorAnalyzer #not functional yet
 from app.core.aja.aja_remediation_service import AJARemediationService
 from app.core.aja.client import AJAHELOClient
 from app.core.error_handling.decorators import handle_errors
@@ -21,7 +21,7 @@ class ErrorHandler:
 
     def handle_error(self, error: Exception, context: Optional[Dict] = None) -> tuple:
         """Central error handling method using CentralErrorManager"""
-        error_data = self._prepare_error_data(error, context)
+        error_data = self.prepare_error_data(error, context)
         
         # Delegate error handling to CentralErrorManager
         error_response = self.central_manager.process_error(
@@ -43,11 +43,11 @@ class ErrorHandler:
 
     def handle_certificate_error(self, error: Exception, context: Dict) -> Dict:
         """Handle certificate errors"""
-        error_data = self._prepare_error_data(error, context)
+        error_data = self.prepare_error_data(error, context)
         self.logger.error(f"Certificate error: {error_data}")
         return {'status': 'error', 'details': error_data}
 
-    def _prepare_error_data(self, error: Exception, context: Optional[Dict]) -> Dict:
+    def prepare_error_data(self, error: Exception, context: Optional[Dict]) -> Dict:
         """Prepare error data for logging and analysis"""
         return {
             'timestamp': datetime.utcnow().isoformat(),
@@ -58,20 +58,20 @@ class ErrorHandler:
             'code': getattr(error, 'code', 500)
         }
 
-    def _log_error(self, error_data: Dict):
+    def log_error(self, error_data: Dict):
         """Log error with appropriate severity"""
         if error_data['code'] >= 500:
             self.logger.error(error_data)
         else:
             self.logger.warning(error_data)
 
-    def _analyze_error(self, error_data: Dict) -> Dict:
+    def analyze_error(self, error_data: Dict) -> Dict:
         """Analyze error using ErrorAnalyzer"""
         if self.error_analyzer:
             return self.error_analyzer.analyze_error(error_data)
         return {}
 
-    def _attempt_remediation(self, error_data: Dict) -> Dict:
+    def attempt_remediation(self, error_data: Dict) -> Dict:
         """Attempt auto-remediation"""
         if self.auto_remediation:
             return self.auto_remediation.attempt_remediation(error_data)

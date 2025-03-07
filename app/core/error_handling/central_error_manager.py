@@ -5,11 +5,11 @@ import logging
 from prometheus_client import Counter, Gauge, Histogram
 from app.core.aja import HeloDeviceParameters, MediaState, IntegratedEncoderParameters
 from app.core.aja import start_streaming, stop_streaming, verify_streaming, verify_recording
-from app.core.error_handling.Bitrate import BitrateOptimizer
+from app.core.error_handling.bitrate import BitrateOptimizer
 from app.core.error_handling.media_storage_handler import StorageHandler, RestartMonitor
 from app.core.error_handling.error_logging import ErrorLogger, ErrorMetrics
 from app.core.error_handling.errors.exceptions import EncoderError 
-from app.core.error_handling import ErrorAnalyzer, ErrorTracker, ErrorType, unified_error_handler, BitrateOptimizer, StorageHandler, RestartMonitor, ErrorLogger, ErrorMetrics
+from app.core.error_handling import ErrorAnalyzer, ErrorTracker, ErrorType, BitrateOptimizer, StorageHandler, RestartMonitor, ErrorLogger, ErrorMetrics
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,7 @@ class CentralErrorManager:
         
         # Handle specific error types
         if source == 'helo':
-            await self._handle_helo_error(error_entry, analysis)
+            await self.handle_helo_error(error_entry, analysis)
 
         return {
             'error_entry': error_entry,
@@ -83,28 +83,28 @@ class CentralErrorManager:
             'handled': True
         }
 
-    async def _handle_helo_error(self, error_entry: Dict, analysis: Dict):
+    async def handle_helo_error(self, error_entry: Dict, analysis: Dict):
         """Handle HELO-specific errors"""
         encoder_id = error_entry['context'].get('encoder_id')
         error_type = error_entry['error_type']
         
         # Implement specific recovery strategies based on error type
         if error_type == HeloPoolErrorType.CONNECTION_LOST:
-            await self._handle_connection_loss(encoder_id)
+            await self.HandleConnectionLoss(encoder_id)
         elif error_type == HeloPoolErrorType.STREAM_FAILURE:
-            await self._handle_stream_failure(encoder_id)
+            await self.HandleStreamFailure(encoder_id)
         elif error_type == HeloPoolErrorType.HIGH_RESOURCE_USAGE:
-            await self._handle_resource_usage(encoder_id)
+            await self.HandleResourceUsage(encoder_id)
         elif error_type == HeloPoolErrorType.ENCODING_ERROR:
-            await self._handle_encoding_error(encoder_id)
+            await self.HandleEncodingError(encoder_id)
         elif error_type == HeloPoolErrorType.TEMPERATURE_WARNING:
-            await self._handle_temperature_warning(encoder_id)
+            await self.HandleTemperatureWarning(encoder_id)
         elif error_type == HeloPoolErrorType.SYNC_LOSS:
-            await self._handle_sync_loss(encoder_id)
+            await self.HandleSyncLoss(encoder_id)
         elif error_type == HeloPoolErrorType.BUFFER_OVERFLOW:
-            await self._handle_buffer_overflow(encoder_id)
+            await self.HandleBufferOverflow(encoder_id)
 
-    async def _handle_connection_loss(self, encoder_id: str):
+    async def HandleConnectionLoss(self, encoder_id: str):
         """Handle connection loss with automatic reconnection"""
         self.logger.log_error(f"Connection lost to HELO encoder {encoder_id}", level='warning')
         try:
@@ -113,7 +113,7 @@ class CentralErrorManager:
         except Exception as e:
             self.logger.log_error(f"Failed to reconnect encoder {encoder_id}: {str(e)}", level='error')
 
-    async def _handle_stream_failure(self, encoder_id: str):
+    async def HandleStreamFailure(self, encoder_id: str):
         """Handle stream failures with automatic restart"""
         self.logger.log_error(f"Stream failure on HELO encoder {encoder_id}", level='error')
         try:
@@ -122,7 +122,7 @@ class CentralErrorManager:
         except Exception as e:
             self.logger.log_error(f"Failed to restart stream for encoder {encoder_id}: {str(e)}", level='error')
 
-    async def _handle_resource_usage(self, encoder_id: str):
+    async def HandleResourceUsage(self, encoder_id: str):
         """Handle high resource usage warnings"""
         self.logger.log_error(f"High resource usage on HELO encoder {encoder_id}", level='warning')
         try:
@@ -131,7 +131,7 @@ class CentralErrorManager:
         except Exception as e:
             self.logger.log_error(f"Failed to optimize resources for encoder {encoder_id}: {str(e)}", level='error')
 
-    async def _handle_encoding_error(self, encoder_id: str):
+    async def HandleEncodingError(self, encoder_id: str):
         """Handle encoding errors with profile adjustment"""
         self.logger.log_error(f"Encoding error on HELO encoder {encoder_id}", level='error')
         try:
@@ -140,7 +140,7 @@ class CentralErrorManager:
         except Exception as e:
             self.logger.log_error(f"Failed to adjust encoding for encoder {encoder_id}: {str(e)}", level='error')
 
-    async def _handle_temperature_warning(self, encoder_id: str):
+    async def HandleTemperatureWarning(self, encoder_id: str):
         """Handle temperature warnings by checking and adjusting device settings"""
         self.logger.log_error(f"Temperature warning on HELO encoder {encoder_id}", level='warning')
         try:
@@ -151,7 +151,7 @@ class CentralErrorManager:
         except Exception as e:
             self.logger.log_error(f"Failed to manage temperature for encoder {encoder_id}: {str(e)}", level='error')
 
-    async def _handle_sync_loss(self, encoder_id: str):
+    async def HandleSyncLoss(self, encoder_id: str):
         """Handle sync loss by attempting to restart streaming or recording"""
         self.logger.log_error(f"Sync loss detected on HELO encoder {encoder_id}", level='warning')
         try:
@@ -161,13 +161,13 @@ class CentralErrorManager:
         except Exception as e:
             self.logger.log_error(f"Failed to restore sync for encoder {encoder_id}: {str(e)}", level='error')
 
-    async def _handle_buffer_overflow(self, encoder_id: str):
+    async def HandleBufferOverflow(self, encoder_id: str):
         """Handle buffer overflow with rate adjustment"""
         self.logger.log_error(f"Buffer overflow on HELO encoder {encoder_id}", level='error')
         # Implementation of buffer management logic
         self.logger.log_error(f"Buffer adjusted for encoder {encoder_id}", level='info')
 
-    def _update_metrics(self, error_entry: Dict, analysis: Dict):
+    def UpdateMetrics(self, error_entry: Dict, analysis: Dict):
         """Update unified metrics"""
         self.metrics['total_errors'].labels(
             error_entry['error_type'],
@@ -177,7 +177,7 @@ class CentralErrorManager:
         if analysis['severity'] in ['critical', 'high']:
             self.metrics['active_errors'].labels(analysis['severity']).inc() 
 
-    async def handle_stream_error(self, encoder_id: str, stream_data: Dict, error: Exception) -> Dict:
+    async def HandleStreamError(self, encoder_id: str, stream_data: Dict, error: Exception) -> Dict:
         """Centralized handling of streaming-related errors"""
         error_entry = {
             'timestamp': datetime.utcnow(),
@@ -202,7 +202,7 @@ class CentralErrorManager:
             'handled': True
         }
 
-    async def handle_error(self, error_type: str, encoder_id: str):
+    async def HandleError(self, error_type: str, encoder_id: str):
         """Handle errors based on type and encoder parameters"""
         try:
             # Initialize parameters
@@ -222,15 +222,17 @@ class CentralErrorManager:
             logger.error(f"Failed to handle error {error_type} for encoder {encoder_id}: {str(e)}")
             raise EncoderError(f"Error handling failed for {encoder_id}", encoder_id=encoder_id)
 
-    async def handle_network_error(self, integrated_params: IntegratedEncoderParameters):
+    async def HandleNetworkError(self, integrated_params: IntegratedEncoderParameters):
         """Handle network-related errors"""
         device_params = integrated_params.device_params
         if not device_params.network_connected:
             # Attempt to reconnect or switch network
             logger.info(f"Attempting to reconnect encoder {integrated_params.encoder_id}")
             # Implement reconnection logic here
+            
+            #AJA Devices already have network reconnection logic built in. We could add subroutine here to document the network event via pings, but this is not necessary.
 
-    async def handle_streaming_error(self, integrated_params: IntegratedEncoderParameters):
+    async def HandleStreamingError(self, integrated_params: IntegratedEncoderParameters):
         """Handle streaming-related errors"""
         device_params = integrated_params.device_params
         if device_params.media_state != MediaState.RECORD_STREAM:
@@ -238,3 +240,4 @@ class CentralErrorManager:
             logger.info(f"Attempting to restart streaming for encoder {integrated_params.encoder_id}")
             # Implement streaming restart logic here
 
+            #AJA Devices already have streaming restart logic built in.

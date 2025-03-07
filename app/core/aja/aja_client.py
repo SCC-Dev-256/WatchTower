@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
-from app.core.error_handling.errors.aja_exceptions import AJAClientError
+from app.core.error_handling import AJAClientError
 from enum import Enum
 
 class AJAHELOEndpoints(Enum):
@@ -56,7 +56,7 @@ class AJAHELOClient:
         else:
             raise AJAClientError(f"API error ({response.status}): {error_msg}")
 
-    async def _make_request(self, method: str, endpoint: Union[str, AJAHELOEndpoints], 
+    async def make_request(self, method: str, endpoint: Union[str, AJAHELOEndpoints], 
                           **kwargs) -> Dict:
         """Make authenticated request with retries and error handling"""
         if isinstance(endpoint, AJAHELOEndpoints):
@@ -90,37 +90,37 @@ class AJAHELOClient:
         """Start streaming with optional configuration"""
         if config:
             await self.configure_stream(config)
-        return await self._make_request("POST", AJAHELOEndpoints.STREAM_START)
+        return await self.make_request("POST", AJAHELOEndpoints.STREAM_START)
 
     async def stop_stream(self) -> Dict:
         """Stop current stream"""
-        return await self._make_request("POST", AJAHELOEndpoints.STREAM_STOP)
+        return await self.make_request("POST", AJAHELOEndpoints.STREAM_STOP)
 
     # Enhanced recording control methods
     async def start_recording(self, config: Optional[Dict] = None) -> Dict:
         """Start recording with optional configuration"""
         if config:
             await self.configure_recording(config)
-        return await self._make_request("POST", AJAHELOEndpoints.RECORD_START)
+        return await self.make_request("POST", AJAHELOEndpoints.RECORD_START)
 
     async def stop_recording(self) -> Dict:
         """Stop current recording"""
-        return await self._make_request("POST", AJAHELOEndpoints.RECORD_STOP)
+        return await self.make_request("POST", AJAHELOEndpoints.RECORD_STOP)
 
     # System control methods
     async def reboot_device(self) -> Dict:
         """Reboot the HELO device"""
-        return await self._make_request("POST", AJAHELOEndpoints.REBOOT)
+        return await self.make_request("POST", AJAHELOEndpoints.REBOOT)
 
     # Enhanced status methods with error handling
     async def get_full_status(self) -> Dict:
         """Get comprehensive device status"""
         try:
             status_results = await asyncio.gather(
-                self._make_request("GET", AJAHELOEndpoints.SYSTEM_STATUS),
-                self._make_request("GET", AJAHELOEndpoints.STREAM_STATUS),
-                self._make_request("GET", AJAHELOEndpoints.RECORD_STATUS),
-                self._make_request("GET", AJAHELOEndpoints.NETWORK_STATUS),
+                self.make_request("GET", AJAHELOEndpoints.SYSTEM_STATUS),
+                self.make_request("GET", AJAHELOEndpoints.STREAM_STATUS),
+                self.make_request("GET", AJAHELOEndpoints.RECORD_STATUS),
+                self.make_request("GET", AJAHELOEndpoints.NETWORK_STATUS),
                 return_exceptions=True
             )
 
@@ -142,15 +142,15 @@ class AJAHELOClient:
             if not self.param_manager.validate_value(param, value):
                 raise AJAClientError(f"Invalid value for parameter: {param}")
 
-        return await self._make_request("POST", AJAHELOEndpoints.STREAM_CONFIG, json=config)
+        return await self.make_request("POST", AJAHELOEndpoints.STREAM_CONFIG, json=config)
 
     async def get_network_stats(self) -> Dict:
         """Get network statistics"""
-        return await self._make_request("GET", AJAHELOEndpoints.NETWORK_STATUS)
+        return await self.make_request("GET", AJAHELOEndpoints.NETWORK_STATUS)
 
     async def get_media_status(self) -> Dict:
         """Get media and storage status"""
-        return await self._make_request("GET", AJAHELOEndpoints.MEDIA_STATUS)
+        return await self.make_request("GET", AJAHELOEndpoints.MEDIA_STATUS)
 
     async def configure_recording(self, config: Dict) -> Dict:
         """Configure recording parameters"""
@@ -159,7 +159,7 @@ class AJAHELOClient:
             if not self.param_manager.validate_value(param, value):
                 raise AJAClientError(f"Invalid value for parameter: {param}")
 
-        return await self._make_request("POST", AJAHELOEndpoints.RECORD_CONFIG, json=config)
+        return await self.make_request("POST", AJAHELOEndpoints.RECORD_CONFIG, json=config)
 
     async def configure_network(self, config: Dict) -> Dict:
         """Configure network parameters"""
@@ -168,7 +168,7 @@ class AJAHELOClient:
             if not self.param_manager.validate_value(param, value):
                 raise AJAClientError(f"Invalid value for parameter: {param}")
 
-        return await self._make_request("POST", AJAHELOEndpoints.NETWORK_CONFIG, json=config)
+        return await self.make_request("POST", AJAHELOEndpoints.NETWORK_CONFIG, json=config)
 
     async def configure_system(self, config: Dict) -> Dict:
         """Configure system parameters"""
@@ -177,7 +177,7 @@ class AJAHELOClient:
             if not self.param_manager.validate_value(param, value):
                 raise AJAClientError(f"Invalid value for parameter: {param}")
 
-        return await self._make_request("POST", AJAHELOEndpoints.SYSTEM_CONFIG, json=config)
+        return await self.make_request("POST", AJAHELOEndpoints.SYSTEM_CONFIG, json=config)
 
     async def __aenter__(self):
         self.session = aiohttp.ClientSession()

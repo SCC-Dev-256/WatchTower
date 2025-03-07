@@ -1,12 +1,4 @@
 from .decorators import handle_errors
-from .error_logging import ErrorLogger
-from .errors import (
-    APIError,
-    EnhancedErrorMetrics,
-    EncoderError,
-    HeloErrorType,
-    AJAClientError
-)
 from .central_error_manager import CentralErrorManager
 from .performance_monitoring import PerformanceMonitor
 from .stream_error_handler import StreamErrorHandler
@@ -19,8 +11,14 @@ from .analysis import (
     CorrelationAnalyzer,
     SystemAnalyzer
 )
-from .Bitrate import BitrateControlMechanism, OptimizeBitrate
-
+from .bitrate import BitrateControlMechanism, OptimizeBitrate
+from .error_logging import ErrorLogger
+from .errors import (
+    APIError,
+    EncoderError,
+    HeloErrorType,
+    AJAClientError
+)
 __all__ = [
     'handle_errors',
     'ErrorLogger',

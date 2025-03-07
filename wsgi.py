@@ -1,4 +1,4 @@
-from app.api.restAPIServer import create_app
+from watchtower.app.api.server import create_app
 
 app = create_app()
 

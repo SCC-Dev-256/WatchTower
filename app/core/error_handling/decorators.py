@@ -1,11 +1,10 @@
 from functools import wraps
 from flask import current_app, jsonify
 from typing import Callable, Any
-from app.core.error_handling.error_logging import ErrorLogger
-from app.core.error_handling.analysis import ErrorAnalyzer
+from app.core.error_handling import ErrorLogger, ErrorAnalyzer
 import asyncio
 
-def handle_errors(operation: str, error_type: str = 'api', severity: str = 'error', include_analysis: bool = False, max_attempts: int = 3, delay_seconds: int = 5):
+def HandleErrors(operation: str, error_type: str = 'api', severity: str = 'error', include_analysis: bool = False, max_attempts: int = 3, delay_seconds: int = 5):
     """Unified error handling and recovery decorator that integrates with ErrorLogger"""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
