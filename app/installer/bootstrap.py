@@ -1,12 +1,6 @@
-import json
-import os
-import sys
-import subprocess
-import logging
+import json, os, sys, subprocess, logging, requests, yaml, sqlalchemy, pathlib, typing
 from pathlib import Path
 from typing import Dict, List
-import requests
-import yaml
 from sqlalchemy import create_engine
 from logging.handlers import RotatingFileHandler
 

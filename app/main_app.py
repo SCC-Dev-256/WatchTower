@@ -14,7 +14,7 @@ from app.services.websocket.unified_websocket_service import UnifiedWebSocketSer
 from app.services.websocket.webhook_service import WebhookService
 from app.services.websocket.websocket_auth import WebSocketAuthenticator
 from app.services.websocket.websocket_rate_limiter import WebSocketRateLimiter
-from app.monitoring.cert_manager import CertificateManager
+from WatchTower.app.monitoring.access.cert_manager import CertificateManager
 from app.monitoring.health_check import HealthChecker
 from app.monitoring import MonitoringSystem
 from app.api.routes.encoders import encoder_bp

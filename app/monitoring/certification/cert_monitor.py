@@ -198,7 +198,7 @@ class CertificateMonitor:
 
     def _send_renewal_alert(self, domain: str, cert_info: CertificateInfo):
         """Send alert for certificate renewal"""
-        from ..core.security.security_logger import SecurityEventLogger
+        from ...core.security.security_logger import SecurityEventLogger
         security_logger = SecurityEventLogger(self.app)
         
         security_logger.log_ssl_event("certificate_expiring", {
@@ -210,7 +210,7 @@ class CertificateMonitor:
 
     def _alert_on_failure(self, domain: str, error: str):
         """Alert on certificate check failure"""
-        from ..core.security.security_logger import SecurityEventLogger
+        from ...core.security.security_logger import SecurityEventLogger
         security_logger = SecurityEventLogger(self.app)
         
         security_logger.log_ssl_event("certificate_check_failed", {

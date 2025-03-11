@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, jsonify, current_app
 from prometheus_client import generate_latest
 from app.monitoring.alert_history import AlertHistory
 from app.monitoring.error_tracking import ErrorTracker
-from app.monitoring.cert_manager import CertificateManager
+from WatchTower.app.monitoring.access.cert_manager import CertificateManager
 from app.core.security.rbac import roles_required
 
 dashboard_bp = Blueprint('dashboard', __name__)

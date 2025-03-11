@@ -1,8 +1,8 @@
 import pytest
 from datetime import datetime, timedelta
 from unittest.mock import Mock, patch
-from app.monitoring.cert_manager import CertificateManager
-from app.monitoring.cert_monitor import CertificateInfo
+from WatchTower.app.monitoring.access.cert_manager import CertificateManager
+from WatchTower.app.monitoring.certification.cert_monitor import CertificateInfo
 
 @pytest.fixture
 def app():

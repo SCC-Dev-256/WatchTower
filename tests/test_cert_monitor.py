@@ -2,7 +2,7 @@ import pytest
 from datetime import datetime, timedelta
 import ssl
 from unittest.mock import Mock, patch, MagicMock
-from app.monitoring.cert_monitor import CertificateMonitor, CertificateInfo
+from WatchTower.app.monitoring.certification.cert_monitor import CertificateMonitor, CertificateInfo
 from app.core.error_handling.decorators import unified_error_handler
 
 @pytest.fixture
