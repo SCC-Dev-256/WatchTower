@@ -18,6 +18,8 @@ class StreamErrorHandler(ErrorHandler):
     async def handle_stream_error(self, encoder_id: str, stream_data: Dict, error: Exception) -> Dict:
         """Handle streaming-related errors"""
         # Log the error
+        #TODO: Implement the logging of the error. This requires input from either AJA parameters or the Logwatch.tmpl file.
+        
         self.logger.log_error({
             'encoder_id': encoder_id,
             'error': str(error),

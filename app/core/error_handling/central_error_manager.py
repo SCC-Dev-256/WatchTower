@@ -10,6 +10,7 @@ from app.core.error_handling.media_storage_handler import StorageHandler, Restar
 from app.core.error_handling.error_logging import ErrorLogger, ErrorMetrics
 from app.core.error_handling.errors.exceptions import EncoderError 
 from app.core.error_handling import ErrorAnalyzer, ErrorTracker, ErrorType, BitrateOptimizer, StorageHandler, RestartMonitor, ErrorLogger, ErrorMetrics
+from app.core.aja.aja_constants import ReplicatorCommands, AJAParameters
 
 logger = logging.getLogger(__name__)
 
@@ -31,12 +32,8 @@ class CentralErrorManager:
     
     def __init__(self, app):
         self.app = app
-        self.error_analyzer = ErrorAnalyzer(app)
-        self.error_tracker = ErrorTracker(app)
         self.logger = ErrorLogger(app)
-        self.bitrate_optimizer = BitrateOptimizer()
-        self.storage_handler = StorageHandler()
-        self.restart_monitor = RestartMonitor()
+        self.error_analyzer = ErrorAnalyzer(app)
         self.metrics = ErrorMetrics()
         self.error_handlers = {
             'network': self.handle_network_error,
@@ -48,40 +45,61 @@ class CentralErrorManager:
             # Add more handlers as needed
         }
 
-    async def process_error(self, 
-                          error: Exception, 
-                          source: str,
-                          context: Dict,
-                          error_type: Optional[ErrorType] = None) -> Dict:
+    async def process_error(self, error: Exception, source: str, context: Dict, error_type: Optional[ErrorType] = None) -> Dict:
         """Process and track error through all systems"""
-        
-        # Create unified error entry
-        error_entry = {
+        error_entry = self._create_error_entry(error, source, context, error_type)
+        self.logger.log_error(error_entry)
+        analysis = await self.error_analyzer.analyze_error(error_entry)
+        self._update_metrics(error_entry, analysis)
+        if source in self.error_handlers:
+            await self.error_handlers[source](error_entry, analysis)
+        return {'error_entry': error_entry, 'analysis': analysis, 'handled': True}
+
+    def _create_error_entry(self, error: Exception, source: str, context: Dict, error_type: Optional[ErrorType]) -> Dict:
+        """Create a unified error entry"""
+        return {
             'timestamp': datetime.utcnow(),
-            'error_type': error_type or self._determine_error_type(error),
+            'error_type': error_type or type(error).__name__,
             'source': source,
             'message': str(error),
             'context': context
         }
 
-        # Track in central system
-        self.error_tracker.track_error(error, context)
-        
-        # Analyze error patterns
-        analysis = await self.error_analyzer.analyze_error(error_entry)
-        
-        # Update metrics
-        self._update_metrics(error_entry, analysis)
-        
-        # Handle specific error types
-        if source == 'helo':
-            await self.handle_helo_error(error_entry, analysis)
+    def _update_metrics(self, error_entry: Dict, analysis: Dict):
+        """Update error metrics"""
+        self.metrics.error_counter.labels(error_type=error_entry['error_type'], service=error_entry['source']).inc()
+        if analysis.get('severity') in ['critical', 'high']:
+            self.metrics.error_severity.labels(severity=analysis['severity']).inc()
 
-        return {
-            'error_entry': error_entry,
-            'analysis': analysis,
-            'handled': True
-        }
+    async def handle_network_error(self, error_entry: Dict, analysis: Dict):
+        """Handle network-related errors"""
+        # Implement specific logic for network errors
+        pass
+
+    async def handle_streaming_error(self, error_entry: Dict, analysis: Dict):
+        """Handle streaming-related errors"""
+        # Implement specific logic for streaming errors
+        pass
+
+    async def handle_recording_error(self, error_entry: Dict, analysis: Dict):
+        """Handle recording-related errors"""
+        # Implement specific logic for recording errors
+        pass
+
+    async def handle_audio_error(self, error_entry: Dict, analysis: Dict):
+        """Handle audio-related errors"""
+        # Implement specific logic for audio errors
+        pass
+
+    async def handle_video_error(self, error_entry: Dict, analysis: Dict):
+        """Handle video-related errors"""
+        # Implement specific logic for video errors
+        pass
+
+    async def handle_system_error(self, error_entry: Dict, analysis: Dict):
+        """Handle system-related errors"""
+        # Implement specific logic for system errors
+        pass
 
     async def handle_helo_error(self, error_entry: Dict, analysis: Dict):
         """Handle HELO-specific errors"""
@@ -167,41 +185,6 @@ class CentralErrorManager:
         # Implementation of buffer management logic
         self.logger.log_error(f"Buffer adjusted for encoder {encoder_id}", level='info')
 
-    def UpdateMetrics(self, error_entry: Dict, analysis: Dict):
-        """Update unified metrics"""
-        self.metrics['total_errors'].labels(
-            error_entry['error_type'],
-            error_entry['source']
-        ).inc()
-        
-        if analysis['severity'] in ['critical', 'high']:
-            self.metrics['active_errors'].labels(analysis['severity']).inc() 
-
-    async def HandleStreamError(self, encoder_id: str, stream_data: Dict, error: Exception) -> Dict:
-        """Centralized handling of streaming-related errors"""
-        error_entry = {
-            'timestamp': datetime.utcnow(),
-            'error_type': 'stream_error',
-            'source': 'stream_handler',
-            'message': str(error),
-            'context': {'encoder_id': encoder_id, 'stream_data': stream_data}
-        }
-
-        # Log the error
-        self.logger.log_error(error_entry, level='critical')
-
-        # Analyze error patterns
-        analysis = await self.error_analyzer.analyze_error(error_entry)
-
-        # Update metrics
-        self._update_metrics(error_entry, analysis)
-
-        return {
-            'error_entry': error_entry,
-            'analysis': analysis,
-            'handled': True
-        }
-
     async def HandleError(self, error_type: str, encoder_id: str):
         """Handle errors based on type and encoder parameters"""
         try:
@@ -241,3 +224,22 @@ class CentralErrorManager:
             # Implement streaming restart logic here
 
             #AJA Devices already have streaming restart logic built in.
+
+    def log_aja_error(self, command_type: ReplicatorCommands, device_id: str, error: Exception, media_state: Optional[MediaState] = None, severity: str = 'error') -> None:
+        """Log AJA device-specific errors"""
+        error_data = {
+            'service': 'aja',
+            'device_id': device_id,
+            'command': command_type.value,
+            'media_state': media_state.value if media_state else None,
+            'error': str(error),
+            'replicator_command': AJAParameters.REPLICATOR_COMMAND,
+            'media_state_param': AJAParameters.MEDIA_STATE,
+            'recording_profile': AJAParameters.RECORDING_PROFILE,
+            'streaming_profile': AJAParameters.STREAMING_PROFILE,
+            'stream_health': AJAParameters.STREAM_HEALTH,
+            'network_bandwidth': AJAParameters.NETWORK_BANDWIDTH,
+            'dropped_frames': AJAParameters.DROPPED_FRAMES
+        }
+        self.logger.log_error(error_data, error_type='aja', severity=severity)
+        self.metrics.error_counter.labels(error_type='aja', service='aja').inc()

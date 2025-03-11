@@ -3,7 +3,18 @@ from app.core.error_handling import ErrorLogger
 
 
 class StorageHandler:
+    """
+    A class to handle storage operations for encoders, including mounting,
+    dismounting, and monitoring for restart patterns.
+
+    This class provides methods to manage storage paths, monitor encoder logs
+    for restart patterns, and log any issues encountered during storage operations.
+    """
+
     def __init__(self):
+        """
+        Initialize the StorageHandler with a logger and predefined storage types.
+        """
         self.logger = ErrorLogger()
         self.storage_types = {
             'SD': 'SD Card Record Path',
@@ -14,7 +25,16 @@ class StorageHandler:
         self.restart_keywords = ["initialization", "assigning", "network access"]
 
     async def dismount_storage(self, encoder_id: str, path: str):
-        """Safely dismount a storage path for an encoder"""
+        """
+        Safely dismount a storage path for an encoder.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            path (str): The storage path to dismount.
+
+        Raises:
+            Exception: If dismounting fails.
+        """
         try:
             mounted_param = f'{path} Mounted'
             await self._set_device_param(encoder_id, mounted_param, False)
@@ -28,7 +48,16 @@ class StorageHandler:
             raise
 
     async def mount_storage(self, encoder_id: str, path: str) -> bool:
-        """Attempt to mount storage path for an encoder"""
+        """
+        Attempt to mount a storage path for an encoder.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            path (str): The storage path to mount.
+
+        Returns:
+            bool: True if mounting is successful, False otherwise.
+        """
         try:
             mounted_param = f'{path} Mounted'
             await self._set_device_param(encoder_id, mounted_param, True)
@@ -49,7 +78,15 @@ class StorageHandler:
             return False
 
     def get_storage_paths_from_config(self, encoder_id: str) -> List[str]:
-        """Get configured storage paths for an encoder"""
+        """
+        Get configured storage paths for an encoder.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+
+        Returns:
+            List[str]: A list of storage paths configured for the encoder.
+        """
         paths = []
         for storage_type in self.storage_types.values():
             if self._get_device_param(encoder_id, storage_type):
@@ -57,7 +94,15 @@ class StorageHandler:
         return paths
 
     async def monitor_restart_loop(self, encoder_id: str):
-        """Monitor encoder logs for restart patterns"""
+        """
+        Monitor encoder logs for restart patterns.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+
+        Raises:
+            Exception: If a storage corruption reboot cycle is detected.
+        """
         log_data = await self._get_device_logs(encoder_id)
         log_lines = log_data.splitlines()
         

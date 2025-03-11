@@ -7,9 +7,23 @@ from app.core.error_handling import ErrorAnalyzer
 from app.core.error_handling.performance_monitoring import PerformanceMonitor
 
 class HeloErrorTracker:
-    """Tracks and analyzes HELO-specific errors"""
+    """
+    A class to track and analyze HELO-specific errors.
+
+    This class provides methods to log errors, analyze error patterns, track
+    recovery attempts, and determine if an error requires escalation. It uses
+    an ErrorAnalyzer to analyze error patterns and a PerformanceMonitor to
+    track the performance impact of errors.
+    """
     
     def __init__(self, error_analyzer: ErrorAnalyzer, performance_monitor: PerformanceMonitor):
+        """
+        Initialize the HeloErrorTracker with an error analyzer and a performance monitor.
+
+        Args:
+            error_analyzer (ErrorAnalyzer): An instance of ErrorAnalyzer to analyze error patterns.
+            performance_monitor (PerformanceMonitor): An instance of PerformanceMonitor to track performance impact.
+        """
         self.error_analyzer = error_analyzer
         self.performance_monitor = performance_monitor
         self.error_history: Dict[str, List[Dict]] = defaultdict(list)
@@ -24,8 +38,18 @@ class HeloErrorTracker:
         }
 
     async def track_error(self, encoder_id: str, error: Exception, context: Dict) -> Dict:
-        """Track and analyze a HELO error"""
-        error_entry = self._create_error_entry(encoder_id, error, context)
+        """
+        Track and analyze a HELO error.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            error (Exception): The error to track.
+            context (Dict): Additional context for the error.
+
+        Returns:
+            Dict: A dictionary containing the error entry, analysis, consecutive error count, and escalation requirement.
+        """
+        error_entry = self.create_error_entry(encoder_id, error, context)
         
         # Store error in history
         self.error_history[encoder_id].append(error_entry)
@@ -50,7 +74,17 @@ class HeloErrorTracker:
         }
 
     def create_error_entry(self, encoder_id: str, error: Exception, context: Dict) -> Dict:
-        """Create detailed error entry"""
+        """
+        Create a detailed error entry.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            error (Exception): The error to create an entry for.
+            context (Dict): Additional context for the error.
+
+        Returns:
+            Dict: A dictionary representing the error entry.
+        """
         error_type = (
             error.details.get('error_type')
             if isinstance(error, EncoderError)
@@ -70,7 +104,17 @@ class HeloErrorTracker:
         }
 
     async def record_recovery_attempt(self, encoder_id: str, error_type: str, success: bool) -> Dict:
-        """Record a recovery attempt"""
+        """
+        Record a recovery attempt.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            error_type (str): The type of error being recovered from.
+            success (bool): Whether the recovery attempt was successful.
+
+        Returns:
+            Dict: A dictionary containing details of the recovery attempt.
+        """
         current_attempts = self.recovery_attempts[encoder_id].get(error_type, 0)
         self.recovery_attempts[encoder_id][error_type] = current_attempts + 1
         
@@ -87,7 +131,16 @@ class HeloErrorTracker:
         }
 
     def is_similar_to_last_error(self, encoder_id: str, current_error: Dict) -> bool:
-        """Check if error is similar to the last one"""
+        """
+        Check if the current error is similar to the last one.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            current_error (Dict): The current error entry.
+
+        Returns:
+            bool: True if the current error is similar to the last one, False otherwise.
+        """
         if not self.error_history[encoder_id]:
             return False
             
@@ -100,7 +153,16 @@ class HeloErrorTracker:
         )
 
     async def analyze_error_pattern(self, encoder_id: str, error_entry: Dict) -> Dict:
-        """Analyze error patterns using ErrorAnalyzer"""
+        """
+        Analyze error patterns using ErrorAnalyzer.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            error_entry (Dict): The error entry to analyze.
+
+        Returns:
+            Dict: The result of the error analysis.
+        """
         return await self.error_analyzer.analyze_error({
             'encoder_id': encoder_id,
             'type': error_entry['error_type'],
@@ -109,7 +171,13 @@ class HeloErrorTracker:
         })
 
     async def track_performance_impact(self, encoder_id: str, error_entry: Dict):
-        """Track performance impact of errors"""
+        """
+        Track the performance impact of errors.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            error_entry (Dict): The error entry to track.
+        """
         self.performance_monitor.record_client_metrics(encoder_id, {
             'error_count': self.consecutive_errors[encoder_id],
             'recovery_attempts': sum(
@@ -119,7 +187,15 @@ class HeloErrorTracker:
         })
 
     def check_escalation_needed(self, encoder_id: str) -> bool:
-        """Check if error requires escalation"""
+        """
+        Check if an error requires escalation.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+
+        Returns:
+            bool: True if escalation is needed, False otherwise.
+        """
         return (
             self.consecutive_errors[encoder_id] >= self.thresholds['consecutive_errors']
             or any(
@@ -130,7 +206,16 @@ class HeloErrorTracker:
 
     def get_error_history(self, encoder_id: str, 
                          time_window: Optional[timedelta] = None) -> List[Dict]:
-        """Get error history for an encoder"""
+        """
+        Get the error history for an encoder.
+
+        Args:
+            encoder_id (str): The ID of the encoder.
+            time_window (Optional[timedelta], optional): The time window to filter errors. Defaults to None.
+
+        Returns:
+            List[Dict]: A list of error entries within the specified time window.
+        """
         if not time_window:
             time_window = self.thresholds['time_window']
             

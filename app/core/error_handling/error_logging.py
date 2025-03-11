@@ -5,7 +5,7 @@ from prometheus_client import Counter, Histogram
 from app.core.enums import EncoderStatus, StreamingState, EventType
 from app.core.security.security_logger import SecurityEventLogger
 from app.core.error_handling.central_error_manager import HeloErrorType
-from app.core.aja.aja_constants import ReplicatorCommands, MediaState
+from app.core.aja.aja_constants import ReplicatorCommands, MediaState, AJAParameters
 from pathlib import Path
 
 class ErrorMetrics:
@@ -203,8 +203,8 @@ class ErrorLogger:
                 'service': 'helo',
                 'encoder_id': encoder_id,
                 'error_type': error_type.value,
-                'streaming_state': details.get('streaming_state'),
-                'media_state': details.get('media_state'),
+                'streaming_state': details.get(AJAParameters.STREAMING_PROFILE),
+                'media_state': details.get(AJAParameters.MEDIA_STATE),
                 **details
             },
             error_type='helo',
