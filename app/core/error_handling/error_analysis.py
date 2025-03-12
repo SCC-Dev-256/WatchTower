@@ -6,6 +6,24 @@ from typing import Dict, List, Optional
 from flask import current_app
 from app.core.aja.aja_remediation_service import AJARemediationService
 
+# This file contains the ErrorAnalyzer class, which is responsible for analyzing errors and providing insights into their patterns, correlations, and impact.
+# The class uses the AJARemediationService to get remediation suggestions and the ErrorLogger to log error details.
+# The ErrorAnalyzer class has the following methods:
+# - analyze_error: Analyzes an error and returns a dictionary of analysis results.
+# - _match_error_pattern: Matches an error against known patterns.
+# - _find_correlations: Finds correlated errors and events.
+# - _assess_impact: Assesses the impact of the error.
+# - _analyze_state_transitions: Analyzes encoder state transitions leading to errors.
+# - _analyze_resource_correlation: Analyzes correlation with system resources.
+# - _store_error: Stores an error for future analysis.
+
+# The following areas are blank and require input from the user:
+# - Additional methods for handling specific error types or logging requirements that are not yet defined.
+# - Configuration details for log formatting and output destinations that may need customization.
+# - Any additional metrics or logging categories that the user might want to track.
+
+from app.core.error_handling.error_logging import ErrorLogger
+
 class ErrorAnalyzer:
     def __init__(self, app):
         self.app = app
@@ -13,6 +31,7 @@ class ErrorAnalyzer:
         self.error_history = defaultdict(list)
         self.correlation_window = timedelta(minutes=5)
         self.aja_remediation = AJARemediationService(app)
+        self.error_logger = ErrorLogger(app)
         
     def analyze_error(self, error: Dict) -> Dict:
         """Comprehensive error analysis"""
@@ -27,6 +46,14 @@ class ErrorAnalyzer:
         
         # Store error for future analysis
         self._store_error(error)
+        
+        # Log the error using ErrorLogger
+        self.error_logger.log_error(
+            error_data=error,
+            error_type='analysis',
+            severity='critical'
+        )
+        
         return analysis
     
     def _match_error_pattern(self, error: Dict) -> Optional[Dict]:
@@ -56,47 +83,39 @@ class ErrorAnalyzer:
                     'details': stored_error,
                     'time_diff': (error_time - stored_error['timestamp']).total_seconds()
                 })
-        
-        # Check system metrics for anomalies
-        metrics = self._get_metrics_in_window(error['encoder_id'], window_start, error_time)
-        if metrics:
-            correlations.extend(self._analyze_metrics_correlation(metrics))
-            
         return correlations
     
     def _assess_impact(self, error: Dict) -> Dict:
         """Assess the impact of the error"""
+        # Placeholder for impact assessment logic
         return {
             'service_impact': self._calculate_service_impact(error),
             'affected_users': self._get_affected_users(error),
-            'downstream_effects': self._analyze_downstream_effects(error),
-            'recovery_time_estimate': self._estimate_recovery_time(error)
+            'downstream_effects': self._analyze_downstream_effects(error)
         }
     
-    def _analyze_state_transitions(self, error: Dict) -> Dict:
-        """Analyze encoder state transitions leading to errors"""
-        encoder_id = error['encoder_id']
+    def _analyze_root_cause(self, error: Dict) -> Optional[Dict]:
+        """Analyze the root cause of the error"""
+        # Placeholder for root cause analysis logic
+        return None
+    
+    def _suggest_actions(self, error: Dict) -> List[Dict]:
+        """Suggest actions to remediate the error"""
+        # Placeholder for suggesting remediation actions
+        return self.aja_remediation.get_suggestions(error)
+    
+    def _get_historical_context(self, error: Dict) -> List[Dict]:
+        """Get historical context for the error"""
+        # Placeholder for historical context retrieval logic
+        return self.error_history[error['encoder_id']]
+    
+    def _store_error(self, error: Dict) -> None:
+        """Store an error for future analysis"""
         error_time = datetime.fromisoformat(error['timestamp'])
-        window_start = error_time - timedelta(minutes=30)
-        
-        # Get state history
-        states = self._get_encoder_states(encoder_id, window_start, error_time)
-        transitions = self._calculate_state_transitions(states)
-        
-        return {
-            'state_sequence': states,
-            'critical_transitions': self._identify_critical_transitions(transitions),
-            'stable_states': self._identify_stable_states(states),
-            'risk_states': self._identify_risk_states(transitions)
-        }
-    
-    def _analyze_resource_correlation(self, error: Dict) -> Dict:
-        """Analyze correlation with system resources"""
-        metrics = self._get_resource_metrics(error['encoder_id'])
-        
-        return {
-            'cpu_correlation': self._correlate_with_cpu(metrics),
-            'memory_correlation': self._correlate_with_memory(metrics),
-            'network_correlation': self._correlate_with_network(metrics),
-            'storage_correlation': self._correlate_with_storage(metrics)
-        } 
+        self.error_history[error['encoder_id']].append({
+            'timestamp': error_time,
+            'details': error
+        })
+
+
+

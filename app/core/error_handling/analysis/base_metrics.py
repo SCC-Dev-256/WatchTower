@@ -4,6 +4,30 @@ import logging
 from prometheus_client import Counter, Gauge, Histogram
 from app.core.error_handling import ErrorType
 
+# This file contains the BaseMetricsService class, which is used to collect and track metrics for encoders.
+# The BaseMetricsService class has the following methods:
+# - increment_operation: Increments the operation counter.
+# - record_error: Records an error.
+# - update_health: Updates the health score.
+# - record_duration: Records the duration of an operation.
+
+# The following areas are blank and require input from the user:
+# - Additional error handling logic for specific error types or logging requirements that are not yet defined.
+# - Configuration details for retry logic, such as exponential backoff or jitter, that may need customization.
+# - Any additional metrics or logging categories that the user might want to track.
+# - Specific logic for handling different error types in the `increment_operation`, `record_error`, `update_health`, and `record_duration` methods.
+# - Detailed implementation for methods like `log_and_track`.
+
+# Levels of abstraction that need to be made specific:
+# 1. Error Handling Logic: Define specific logic for handling different types of errors (e.g., network, streaming, recording).
+# 2. Retry Logic: Customize and add any additional retry mechanisms, such as exponential backoff or jitter.
+# 3. Metrics: Customize and add any additional metrics that need to be tracked.
+# 4. Logging: Configure log formatting and output destinations as per the application's requirements.
+# 5. Error Analysis: Implement detailed logic for analyzing errors and providing insights.
+# 6. Error Entry Creation: Ensure the error data captures all necessary details for each error type.
+# 7. Error Processing: Define the specific steps to process and handle each error type in the `increment_operation`, `record_error`, `update_health`, and `record_duration` methods.
+
+
 class BaseMetricsService:
     """Base class for standardized metrics collection"""
     

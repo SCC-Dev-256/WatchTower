@@ -4,6 +4,28 @@ from app.core.aja import AJAParameterManager, AJAMediaState
 from app.core.error_handling import BaseMetricsService
 import logging
 
+# This file contains the MetricsCollector class, which is used to collect metrics from AJA HELO devices.
+# The MetricsCollector class has the following methods:
+# - collect_metrics: Collects metrics for a given encoder.
+
+# The following areas are blank and require input from the user:
+# - Additional error handling logic for specific error types or logging requirements that are not yet defined.
+# - Configuration details for retry logic, such as exponential backoff or jitter, that may need customization.
+# - Any additional metrics or logging categories that the user might want to track.
+# - Specific logic for handling different error types in the `collect_metrics` method.
+# - Detailed implementation for methods like `collect_metrics`.
+
+# Levels of abstraction that need to be made specific:
+# 1. Error Handling Logic: Define specific logic for handling different types of errors (e.g., network, streaming, recording).
+# 2. Retry Logic: Customize and add any additional retry mechanisms, such as exponential backoff or jitter.
+# 3. Metrics: Customize and add any additional metrics that need to be tracked.
+# 4. Logging: Configure log formatting and output destinations as per the application's requirements.
+# 5. Error Analysis: Implement detailed logic for analyzing errors and providing insights.
+# 6. Error Entry Creation: Ensure the error data captures all necessary details for each error type.
+# 7. Error Processing: Define the specific steps to process and handle each error type in the `collect_metrics` method.
+
+
+
 logger = logging.getLogger(__name__)
 
 class MetricsCollector(BaseMetricsService):

@@ -8,6 +8,21 @@ from app.core.error_handling.central_error_manager import HeloErrorType
 from app.core.aja.aja_constants import ReplicatorCommands, MediaState, AJAParameters
 from pathlib import Path
 
+# This file contains multiple levels of abstraction for error handling and logging:
+# 1. ErrorMetrics: Defines Prometheus metrics for tracking various error types and events.
+# 2. ErrorLogger: Centralized error logging system that initializes loggers and handles different error types.
+# 3. setup_loggers: Method within ErrorLogger to set up different log handlers for various error categories.
+# 4. setup_logger: Method within ErrorLogger to configure individual loggers with enhanced formatting.
+# 5. log_state_change: Method within ErrorLogger to log state changes for monitoring.
+# 6. log_enhanced_error: Method within ErrorLogger to log detailed error context and update metrics.
+# 
+# The following areas are blank and require input from the user:
+# - Additional methods for handling specific error types or logging requirements that are not yet defined.
+# - Configuration details for log formatting and output destinations that may need customization.
+# - Any additional metrics or logging categories that the user might want to track.
+
+
+
 class ErrorMetrics:
     """Metrics for error tracking"""
     error_counter = Counter('error_total', 'Total errors by type and service', ['error_type', 'service'])
@@ -315,16 +330,3 @@ class ErrorLogger:
         self.metrics.error_counter.labels(error_type=error_type, service=service).inc()
         self.metrics.error_resolution_time.labels(resolution_strategy=resolution_strategy).observe(resolution_time)
 
-    def log_error_pattern_change(self, error_type: str, details: Dict[str, Any]) -> None:
-        """Log significant changes in error patterns"""
-        logger = self.loggers.get('system')
-        logger.info(
-            f"Significant change in error pattern for {error_type}",
-            extra={
-                'error_type': error_type,
-                'details': details
-            }
-        )
-        
-        # Update pattern change metric
-        self.metrics.error_pattern_changes.labels(error_type=error_type).inc()

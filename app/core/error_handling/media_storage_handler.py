@@ -1,6 +1,30 @@
 from typing import List
 from app.core.error_handling import ErrorLogger
 
+# This file contains the StorageHandler class, which is used to handle storage operations for encoders.
+# The StorageHandler class has the following methods:
+# - dismount_storage: Dismounts a storage path for an encoder.
+# - mount_storage: Mounts a storage path for an encoder.
+# - get_storage_paths_from_config: Gets the storage paths for an encoder from the configuration.
+# - monitor_restart_loop: Monitors the encoder logs for restart patterns.
+
+# The following areas are blank and require input from the user:
+# - Additional error handling logic for specific error types or logging requirements that are not yet defined.
+# - Configuration details for retry logic, such as exponential backoff or jitter, that may need customization.
+# - Any additional metrics or logging categories that the user might want to track.
+# - Specific logic for handling different error types in the `dismount_storage` and `mount_storage` methods.
+# - Detailed implementation for methods like `monitor_restart_loop` and `_handle_corrupted_storage`.
+
+# Levels of abstraction that need to be made specific:
+# 1. Error Handling Logic: Define specific logic for handling different types of errors (e.g., network, streaming, recording).
+# 2. Retry Logic: Customize and add any additional retry mechanisms, such as exponential backoff or jitter.
+# 3. Metrics: Customize and add any additional metrics that need to be tracked.
+# 4. Logging: Configure log formatting and output destinations as per the application's requirements.
+# 5. Error Analysis: Implement detailed logic for analyzing errors and providing insights.
+# 6. Error Entry Creation: Ensure the error data captures all necessary details for each error type.
+# 7. Error Processing: Define the specific steps to process and handle each error type in the `dismount_storage` and `mount_storage` methods.
+
+
 
 class StorageHandler:
     """

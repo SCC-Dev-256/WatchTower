@@ -6,6 +6,35 @@ from app.core.error_handling.errors.exceptions import EncoderError
 from app.core.error_handling import ErrorAnalyzer
 from app.core.error_handling.performance_monitoring import PerformanceMonitor
 
+# This file contains the HeloErrorTracker class, which is used to track and analyze HELO-specific errors.
+# The HeloErrorTracker class uses an ErrorAnalyzer to analyze error patterns and a PerformanceMonitor to track performance impact.
+# The HeloErrorTracker class has the following methods:
+# - track_error: Tracks and analyzes a HELO error.
+# - create_error_entry: Creates a detailed error entry.
+# - record_recovery_attempt: Records a recovery attempt.
+# - is_similar_to_last_error: Checks if the current error is similar to the last one.
+# - analyze_error_pattern: Analyzes error patterns using ErrorAnalyzer.
+# - track_performance_impact: Tracks the performance impact of errors.
+# - check_escalation_needed: Checks if an error requires escalation.
+# - get_error_history: Gets the error history for an encoder.
+
+# The following areas are blank and require input from the user:
+# - Additional error handling logic for specific error types or logging requirements that are not yet defined.
+# - Configuration details for retry logic, such as exponential backoff or jitter, that may need customization.
+# - Any additional metrics or logging categories that the user might want to track.
+# - Specific logic for handling different error types in the `track_error` method.
+# - Detailed implementation for methods like `create_error_entry`, `record_recovery_attempt`, `is_similar_to_last_error`, `analyze_error_pattern`, `track_performance_impact`, and `check_escalation_needed`.
+
+# Levels of abstraction that need to be made specific:
+# 1. Error Handling Logic: Define specific logic for handling different types of errors (e.g., network, streaming, recording).
+# 2. Retry Logic: Customize and add any additional retry mechanisms, such as exponential backoff or jitter.
+# 3. Metrics: Customize and add any additional metrics that need to be tracked.
+# 4. Logging: Configure log formatting and output destinations as per the application's requirements.
+# 5. Error Analysis: Implement detailed logic for analyzing errors and providing insights.
+# 6. Error Entry Creation: Ensure the error data captures all necessary details for each error type.
+# 7. Error Processing: Define the specific steps to process and handle each error type in the `track_error` method.
+
+
 class HeloErrorTracker:
     """
     A class to track and analyze HELO-specific errors.

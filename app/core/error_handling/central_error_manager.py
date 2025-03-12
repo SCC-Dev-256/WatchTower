@@ -14,6 +14,69 @@ from app.core.aja.aja_constants import ReplicatorCommands, AJAParameters
 
 logger = logging.getLogger(__name__)
 
+# This file contains the CentralErrorManager class, which is responsible for managing errors and handling them through all systems.
+# The class uses the ErrorLogger to log error details and the ErrorAnalyzer to analyze errors.
+# The CentralErrorManager class has the following methods:
+# - process_error: Processes an error and tracks it through all systems.
+# - _create_error_entry: Creates a unified error entry.
+# - _update_metrics: Updates error metrics.
+# - handle_network_error: Handles network-related errors.
+# - handle_streaming_error: Handles streaming-related errors.
+# - handle_recording_error: Handles recording-related errors.
+# - handle_audio_error: Handles audio-related errors.
+# - handle_video_error: Handles video-related errors.
+# - handle_system_error: Handles system-related errors. 
+# - handle_helo_error: Handles HELO-specific errors.
+# - HandleConnectionLoss: Handles connection loss with automatic reconnection.
+# - HandleStreamFailure: Handles stream failures with automatic restart.
+# - HandleResourceUsage: Handles high resource usage warnings.
+# - HandleEncodingError: Handles encoding errors with profile adjustment.
+# - HandleTemperatureWarning: Handles temperature warnings by checking and adjusting device settings.
+# - HandleSyncLoss: Handles pool sync loss by attempting to restart streaming or recording.
+# - HandleBufferOverflow: Handles buffer overflow with rate adjustment.
+
+# The following areas are blank and require input from the user:
+# - Additional error handlers for specific error types or logging requirements that are not yet defined.
+# - Configuration details for error handling and output destinations that may need customization.
+# - Any additional metrics or logging categories that the user might want to track.
+# - Specific logic for handling different error types in the `process_error` method.
+# - Detailed implementation for methods like `handle_network_error`, `handle_streaming_error`, etc.
+
+# Levels of abstraction that need to be made specific:
+# 1. Error Handlers: Define specific logic for handling different types of errors (e.g., network, streaming, recording).
+# 2. Metrics: Customize and add any additional metrics that need to be tracked.
+# 3. Logging: Configure log formatting and output destinations as per the application's requirements.
+# 4. Error Analysis: Implement detailed logic for analyzing errors and providing insights.
+# 5. Error Entry Creation: Ensure the `_create_error_entry` method captures all necessary details for each error type.
+# 6. Error Processing: Define the specific steps to process and handle each error type in the `process_error` method.
+
+
+# Example of customizing metrics:
+def _update_metrics(self, error_entry: Dict, analysis: Dict) -> None:
+    """Update error metrics"""
+    self.metrics.error_counter.labels(
+        error_type=error_entry['error_type'],
+        service=error_entry['source']
+    ).inc()
+    # Additional metrics updates based on error analysis
+
+# Example of detailed error entry creation:
+def _create_error_entry(self, error: Exception, source: str, context: Dict, error_type: Optional[ErrorType]) -> Dict:
+    """Create a unified error entry"""
+    return {
+        'timestamp': datetime.utcnow(),
+        'error_type': error_type or type(error).__name__,
+        'source': source,
+        'message': str(error),
+        'context': context,
+        'details': {
+            'file': error.__traceback__.tb_frame.f_code.co_filename,
+            'line': error.__traceback__.tb_lineno,
+            'function': error.__traceback__.tb_frame.f_code.co_name
+        }
+    }
+
+
 class HeloPoolErrorType(Enum):
     """HELO-specific error types"""
     CONNECTION_LOST = "connection_lost"
