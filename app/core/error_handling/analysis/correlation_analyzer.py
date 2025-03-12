@@ -1,13 +1,12 @@
 from typing import Dict, List, Optional
 from datetime import datetime, timedelta
-import numpy as np
 import pandas as pd
 from collections import defaultdict
-import requests
-import matplotlib.pyplot as plt
+import requests 
 from app.core.config import ParameterConfig
 from app.core.aja import HeloParameters
 from app.core.error_handling import ErrorType
+import matplotlib.pyplot as plt
 
 # This file contains the ErrorAnalyzer class, which is used to analyze errors and their correlations.
 # The ErrorAnalyzer class has the following methods:
