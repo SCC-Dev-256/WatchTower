@@ -1,0 +1,16 @@
+numba
+numpy
+torch
+tqdm
+more-itertools
+tiktoken
+
+[:platform_machine == "x86_64" and sys_platform == "linux" or sys_platform == "linux2"]
+triton>=2.0.0
+
+[dev]
+pytest
+scipy
+black
+flake8
+isort
