@@ -39,16 +39,35 @@ def receive_audio_stream():
         if not in_bytes:
             break
         audio_chunk = np.frombuffer(in_bytes, np.int16)
+        print(f"audio_chunk created: {audio_chunk}")
         yield audio_chunk
 
 def process_audio_chunks():
+    # Initialize ASR and online processor
     asr, online = asr_factory(args, logfile=sys.stderr)
+    
+    # Buffer to store audio chunks
+    audio_buffer = []
+
+    # Process each audio chunk from the stream
     for audio_chunk in receive_audio_stream():
-        # Transcribe the audio chunk using whisper_online module
-        online.insert_audio_chunk(audio_chunk)
+        # Append the audio chunk to the buffer
+        audio_buffer.append(audio_chunk)
+
+        # Convert the buffer to a numpy array for processing
+        working_audio_chunk_array = np.concatenate(audio_buffer)
+
+        # Insert the audio chunk into the online processor
+        online.insert_audio_chunk(working_audio_chunk_array)
+
+        # Process the audio chunk and get the result
         result = online.process_iter()
+
+        # Output the transcription result
         output_transcript(result)
-        pass
+
+        # Clear the buffer after processing
+        audio_buffer.clear()
 
 # Placeholder function to transcribe audio chunks
 def transcribe_audio_chunk(working_audio_chunk_array):
