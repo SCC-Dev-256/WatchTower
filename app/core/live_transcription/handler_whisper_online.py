@@ -22,13 +22,18 @@ class StreamConfig:
     chunk_size: int = 4096
 
 class LiveCaptioningService:
-    """Service to handle live captioning of AJA device streams"""
+    """Service to handle live captioning of AJA device streams.
+    This is a non-critical service that adds captions to streams.
+    If transcription fails, the service will gracefully degrade without
+    affecting the main stream flow between input and output stream keys.
+    """
     
     def __init__(self, config: StreamConfig):
         self.config = config
         self.asr = None
         self.online_processor = None
         self._initialize_asr()
+        self._transcription_failed = False
 
     def _initialize_asr(self):
         """Initialize the ASR processor with configuration"""
@@ -49,14 +54,13 @@ class LiveCaptioningService:
         return None
 
     async def process_stream(self):
-        """Main stream processing loop"""
+        """Main stream processing loop. Handles transcription failures gracefully
+        without disrupting the main stream flow."""
         async with AJAHELOClient(self.config.ip_address) as aja_client:
             try:
-                # Start streaming
                 await aja_client.start_stream()
                 logger.info("Stream started successfully")
 
-                # Set up ffmpeg process for m3u8 stream
                 process = (
                     ffmpeg
                     .input(self.config.stream_url, f='m3u8')
@@ -69,45 +73,42 @@ class LiveCaptioningService:
                 )
 
                 while True:
-                    # Read and process audio chunks
-                    in_bytes = process.stdout.read(self.config.chunk_size)
-                    if not in_bytes:
-                        break
+                    try:
+                        in_bytes = process.stdout.read(self.config.chunk_size)
+                        if not in_bytes:
+                            break
+                            
+                        audio_chunk = np.frombuffer(in_bytes, np.int16).astype(np.float32) / 32768.0
+                        transcription = await self._process_audio_chunk(audio_chunk)
                         
-                    audio_chunk = np.frombuffer(in_bytes, np.int16).astype(np.float32) / 32768.0
-                    transcription = await self._process_audio_chunk(audio_chunk)
-                    
-                    if transcription:
-                        # Handle the transcription (e.g., save to SRT, overlay on stream)
-                        await self._handle_transcription(transcription, aja_client)
+                        if transcription and not self._transcription_failed:
+                            await self._handle_transcription(transcription, aja_client)
+                            
+                    except Exception as e:
+                        logger.error(f"Transcription error (non-critical): {e}")
+                        self._transcription_failed = True
+                        # Continue stream processing even if transcription fails
+                        continue
                         
             except AJAClientError as e:
                 logger.error(f"AJA client error: {e}")
                 raise
-            except Exception as e:
-                logger.error(f"Stream processing error: {e}")
-                raise
             finally:
-                # Ensure stream is stopped
                 try:
                     await aja_client.stop_stream()
                 except Exception as e:
                     logger.error(f"Error stopping stream: {e}")
 
     async def _handle_transcription(self, transcription: str, aja_client: AJAHELOClient):
-        """Handle the transcription result"""
+        """Handle the transcription result. If this fails, it only affects captions,
+        not the main stream flow."""
         try:
-            # Format transcription and update stream
-            # Implementation depends on how you want to display captions
             logger.info(f"New transcription: {transcription}")
-            
-            # Here you would implement the logic to overlay captions
-            # This might involve updating stream configuration or 
-            # sending commands to the AJA device
+            # Implement caption overlay logic here
             pass
-            
         except Exception as e:
-            logger.error(f"Error handling transcription: {e}")
+            logger.error(f"Caption handling error (non-critical): {e}")
+            self._transcription_failed = True
 
 # Usage example
 async def main():
