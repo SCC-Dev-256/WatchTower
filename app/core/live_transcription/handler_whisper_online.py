@@ -1,62 +1,132 @@
-from .whisper_streaming.whisper_online import audio_has_not_ended, lan, OnlineASRProcessor, WhisperTimestampedASR
+import asyncio
+import logging
+from typing import Optional
+from dataclasses import dataclass
+import numpy as np
 import ffmpeg
+import argparse
 
-src_lan = "en"  # source language
-tgt_lan = "en"  # target language  -- same as source for ASR, "en" if translate task is used
+from app.core.live_transcription.whisper_streaming.whisper_online import asr_factory, OnlineASRProcessor, WhisperTimestampedASR, online_processor
+from app.core.aja.client import AJAHELOClient, AJAClientError
 
-# Initialize WhisperTimestampedASR
-asr = WhisperTimestampedASR(lan, "large-v2")  # loads and wraps Whisper model
+logger = logging.getLogger(__name__)
 
-# Set options if needed
-asr.set_translate_task()  # it will translate from lan into English
-asr.use_vad()  # Enable VAD
+@dataclass
+class StreamConfig:
+    """Configuration for stream processing"""
+    ip_address: str
+    stream_url: str
+    model: str = "large-v2"
+    language: str = "en"
+    min_chunk_size: float = 1.0
+    chunk_size: int = 4096
 
-# Create processing object with default buffer trimming option
-online = OnlineASRProcessor(asr)
+class LiveCaptioningService:
+    """Service to handle live captioning of AJA device streams"""
+    
+    def __init__(self, config: StreamConfig):
+        self.config = config
+        self.asr = None
+        self.online_processor = None
+        self._initialize_asr()
 
-# Define the source URL for the live stream
-src = 'Spacefiller' #'https://reflect-vod-scctv.cablecast.tv/live-63/live/live.m3u8'
+    def _initialize_asr(self):
+        """Initialize the ASR processor with configuration"""
+        args = argparse.Namespace(
+            model=self.config.model,
+            lan=self.config.language,
+            min_chunk_size=self.config.min_chunk_size
+        )
+        self.asr, self.online_processor = asr_factory(args)
+        logger.info(f"ASR initialized with model {self.config.model}")
 
-#__________________________________________________________________________________________
+    async def _process_audio_chunk(self, chunk: np.ndarray) -> Optional[str]:
+        """Process a single audio chunk and return transcription"""
+        self.online_processor.insert_audio_chunk(chunk)
+        result = self.online_processor.process_iter()
+        if result[0] is not None:
+            return result[2]  # Return transcribed text
+        return None
 
+    async def process_stream(self):
+        """Main stream processing loop"""
+        async with AJAHELOClient(self.config.ip_address) as aja_client:
+            try:
+                # Start streaming
+                await aja_client.start_stream()
+                logger.info("Stream started successfully")
 
-def convert_to_wav(src, start_time, duration):
-    out, _ = (
-        ffmpeg
-        .input(src, ss=start_time, t=duration)
-        .output('pipe:', format='wav')
-        .run(capture_stdout=True, capture_stderr=True)
+                # Set up ffmpeg process for m3u8 stream
+                process = (
+                    ffmpeg
+                    .input(self.config.stream_url, f='m3u8')
+                    .output('pipe:', 
+                           format='wav',
+                           acodec='pcm_s16le',
+                           ac=1,
+                           ar='16000')
+                    .run_async(pipe_stdout=True)
+                )
+
+                while True:
+                    # Read and process audio chunks
+                    in_bytes = process.stdout.read(self.config.chunk_size)
+                    if not in_bytes:
+                        break
+                        
+                    audio_chunk = np.frombuffer(in_bytes, np.int16).astype(np.float32) / 32768.0
+                    transcription = await self._process_audio_chunk(audio_chunk)
+                    
+                    if transcription:
+                        # Handle the transcription (e.g., save to SRT, overlay on stream)
+                        await self._handle_transcription(transcription, aja_client)
+                        
+            except AJAClientError as e:
+                logger.error(f"AJA client error: {e}")
+                raise
+            except Exception as e:
+                logger.error(f"Stream processing error: {e}")
+                raise
+            finally:
+                # Ensure stream is stopped
+                try:
+                    await aja_client.stop_stream()
+                except Exception as e:
+                    logger.error(f"Error stopping stream: {e}")
+
+    async def _handle_transcription(self, transcription: str, aja_client: AJAHELOClient):
+        """Handle the transcription result"""
+        try:
+            # Format transcription and update stream
+            # Implementation depends on how you want to display captions
+            logger.info(f"New transcription: {transcription}")
+            
+            # Here you would implement the logic to overlay captions
+            # This might involve updating stream configuration or 
+            # sending commands to the AJA device
+            pass
+            
+        except Exception as e:
+            logger.error(f"Error handling transcription: {e}")
+
+# Usage example
+async def main():
+    config = StreamConfig(
+        ip_address="192.168.1.100",
+        stream_url="http://example.com/stream.m3u8"
     )
-    return out
+    
+    service = LiveCaptioningService(config)
+    await service.process_stream()
 
-# Define the buffer size and duration for each chunk
-buffer_size = 16000  # 1 second buffer size for 16kHz audio
-chunk_duration = 1  # 1 second duration
-
-# Initialize the start time
-start_time = 0
-
-while audio_has_not_ended:   # processing loop:
-    # Convert the live stream to wav chunk
-    audio_chunk = convert_to_wav(src, start_time, chunk_duration)
-    
-    # Insert the audio chunk into the ASR processor
-    online.insert_audio_chunk(audio_chunk)
-    
-    # Process the audio chunk and get the transcription
-    transcription = online.process_iter()
-    
-    # Print the transcription
-    print(transcription)  # do something with current partial output
-    
-    # Increment the start time for the next chunk
-    start_time += chunk_duration
+if __name__ == "__main__":
+    asyncio.run(main())
 
 # At the end of this audio processing
-final_transcription = online.finish()
+final_transcription = online_processor.finish()
 print(final_transcription)  # do something with the last output
 
-online.init()  # refresh if you're going to re-use the object for the next audio
+online_processor.init()  # refresh if you're going to re-use the object for the next audio
 
 def format_to_srt(transcription):
     srt_content = []

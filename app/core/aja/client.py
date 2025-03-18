@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
-from app.core.error_handling.errors.aja_exceptions import AJAClientError
+from app.core.aja.client import AJAHELOClient, AJAClientError
 from enum import Enum
 
 class AJAHELOEndpoints(Enum):
