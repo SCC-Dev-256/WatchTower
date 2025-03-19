@@ -13,7 +13,20 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class StreamConfig:
-    """Configuration for stream processing"""
+    """Configuration for stream processing.
+    
+    This configuration bridges the AJA device streaming system with the Whisper
+    transcription service. It contains parameters needed for both stream handling
+    and transcription processing.
+    
+    Attributes:
+        ip_address: IP address of the AJA device
+        stream_url: HLS stream URL from the AJA device
+        model: Whisper model size (default: "large-v2")
+        language: Source language for transcription (default: "en")
+        min_chunk_size: Minimum audio chunk size for processing
+        chunk_size: Size of audio chunks for ffmpeg processing
+    """
     ip_address: str
     stream_url: str
     model: str = "large-v2"
@@ -23,12 +36,19 @@ class StreamConfig:
 
 class LiveCaptioningService:
     """Service to handle live captioning of AJA device streams.
-    This is a non-critical service that adds captions to streams.
-    If transcription fails, the service will gracefully degrade without
-    affecting the main stream flow between input and output stream keys.
+    Designed for minimal resource usage:
+    - Only extracts audio stream when transcription is active
+    - No video re-encoding
+    - Automatic bypass on transcription failure
     """
     
     def __init__(self, config: StreamConfig):
+        """Initialize the captioning service.
+        
+        Args:
+            config: StreamConfig object containing all necessary parameters
+                   for both AJA device streaming and Whisper transcription
+        """
         self.config = config
         self.asr = None
         self.online_processor = None
@@ -54,54 +74,75 @@ class LiveCaptioningService:
         return None
 
     async def process_stream(self):
-        """Main stream processing loop. Handles transcription failures gracefully
-        without disrupting the main stream flow."""
+        """Main stream processing loop with minimal encoding overhead.
+        On transcription failure, bypasses all audio processing
+        and returns to direct stream passthrough."""
         async with AJAHELOClient(self.config.ip_address) as aja_client:
             try:
+                # Start with direct stream passthrough
                 await aja_client.start_stream()
                 logger.info("Stream started successfully")
 
-                process = (
-                    ffmpeg
-                    .input(self.config.stream_url, f='m3u8')
-                    .output('pipe:', 
-                           format='wav',
-                           acodec='pcm_s16le',
-                           ac=1,
-                           ar='16000')
-                    .run_async(pipe_stdout=True)
-                )
+                if not self._transcription_failed:
+                    # Only extract audio stream, ignore video
+                    process = (
+                        ffmpeg
+                        .input(self.config.stream_url, f='m3u8')
+                        .output('pipe:', 
+                               format='wav',
+                               acodec='pcm_s16le',
+                               ac=1,
+                               ar='16000',
+                               vn=True)  # Skip video processing
+                        .run_async(pipe_stdout=True)
+                    )
 
-                while True:
-                    try:
-                        in_bytes = process.stdout.read(self.config.chunk_size)
-                        if not in_bytes:
+                    while not self._transcription_failed:
+                        try:
+                            in_bytes = process.stdout.read(self.config.chunk_size)
+                            if not in_bytes:
+                                break
+                                
+                            audio_chunk = np.frombuffer(in_bytes, np.int16).astype(np.float32) / 32768.0
+                            transcription = await self._process_audio_chunk(audio_chunk)
+                            
+                            if transcription:
+                                await self._handle_transcription(transcription, aja_client)
+                                
+                        except Exception as e:
+                            logger.error(f"Transcription error (non-critical): {e}")
+                            self._transcription_failed = True
+                            # Stop audio processing
+                            process.kill()
                             break
-                            
-                        audio_chunk = np.frombuffer(in_bytes, np.int16).astype(np.float32) / 32768.0
-                        transcription = await self._process_audio_chunk(audio_chunk)
-                        
-                        if transcription and not self._transcription_failed:
-                            await self._handle_transcription(transcription, aja_client)
-                            
-                    except Exception as e:
-                        logger.error(f"Transcription error (non-critical): {e}")
-                        self._transcription_failed = True
-                        # Continue stream processing even if transcription fails
-                        continue
-                        
+
             except AJAClientError as e:
                 logger.error(f"AJA client error: {e}")
                 raise
             finally:
-                try:
-                    await aja_client.stop_stream()
-                except Exception as e:
-                    logger.error(f"Error stopping stream: {e}")
+                # Ensure stream continues or stops as needed
+                if not self._transcription_failed:
+                    try:
+                        await aja_client.stop_stream()
+                    except Exception as e:
+                        logger.error(f"Error stopping stream: {e}")
 
     async def _handle_transcription(self, transcription: str, aja_client: AJAHELOClient):
-        """Handle the transcription result. If this fails, it only affects captions,
-        not the main stream flow."""
+        """Handle the transcription result and integrate with AJA device.
+        
+        This method bridges the Whisper transcription output with the AJA
+        device's streaming capabilities. It handles:
+        1. Formatting transcriptions into captions
+        2. Integrating captions with the stream
+        3. Managing caption overlay failures
+        
+        Failures in this method only affect caption generation and do not
+        impact the main stream flow between input and output stream keys matrix. However, it will 
+        
+        Args:
+            transcription: Transcribed text from Whisper
+            aja_client: AJA device client for stream management
+        """
         try:
             logger.info(f"New transcription: {transcription}")
             # Implement caption overlay logic here
@@ -110,7 +151,9 @@ class LiveCaptioningService:
             logger.error(f"Caption handling error (non-critical): {e}")
             self._transcription_failed = True
 
-# Usage example
+# Usage example. In real life this will connect to the URL from Youtube. which is a static URL I believe. 
+#The things that matter are the input and output stream keys. 
+
 async def main():
     config = StreamConfig(
         ip_address="192.168.1.100",
@@ -226,6 +269,7 @@ input_stream_key, output_stream_key = get_stream_keys(stream_key_name)
 
 merge_subtitles_with_stream(input_stream_key, srt_content, output_stream_key)
 
+#Written - 3/17/2025 
 #we need to make an error system that will check if the stream is working, and if it is not, the AJA device will be provided with the original connection.
 #this will be a table in the database that will have the stream url, the output stream url, and the error message.
 #the error message will be a description of the error that will be used to determine the action to take.
