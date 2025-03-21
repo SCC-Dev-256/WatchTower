@@ -157,7 +157,7 @@ class LiveCaptioningService:
 async def main():
     config = StreamConfig(
         ip_address="192.168.1.100",
-        stream_url="http://example.com/stream.m3u8"
+        stream_url="rtmp://a.rtmp.youtube.com/live2"
     )
     
     service = LiveCaptioningService(config)
