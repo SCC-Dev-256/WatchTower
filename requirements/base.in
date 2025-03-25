@@ -9,6 +9,9 @@ flask-openapi3==3.0.1
 Flask-Caching==2.1.0
 prometheus-flask-exporter==0.22.4
 python-dotenv>=1.0.0
+fastapi
+passlib[bcrypt]
+python-jose
 
 # Redis Integration
 redis==5.0.1

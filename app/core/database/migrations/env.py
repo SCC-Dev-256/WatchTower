@@ -6,6 +6,9 @@ from alembic import context
 from app.core.database.models.encoder import HeloEncoder
 from app.core.database.models.api_key_management import APIKey
 from app.core.database.models.log_entry import LogEntry
+from app.core.database.models.user import User
+from app.core.database.models.encoder import Encoder
+from app.core.database.models.stream_key import StreamKey
 from app.core.database import db
 
 # this is the Alembic Config object

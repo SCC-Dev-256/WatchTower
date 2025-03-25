@@ -41,6 +41,11 @@ Flask-SocketIO==5.3.6
 psutil==5.9.5
 structlog==23.1.0
 
+# JWT Auth Dependencies
+fastapi
+passlib[bcrypt]
+python-jose
+
 # Additional dependencies
 requests==2.31.0
 sqlalchemy==2.0.21

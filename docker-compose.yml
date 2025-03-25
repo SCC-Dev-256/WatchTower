@@ -5,13 +5,14 @@ services:
     image: postgres:latest
     container_name: postgres_db
     environment:
-      POSTGRES_USER: your_db_user
-      POSTGRES_PASSWORD: your_db_password
-      POSTGRES_DB: your_db_name
+      POSTGRES_USER: watchuser
+      POSTGRES_PASSWORD: watchpass
+      POSTGRES_DB: watchtower
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+
 
 volumes:
   db_data: 
