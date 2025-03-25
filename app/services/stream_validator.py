@@ -4,7 +4,7 @@ from .encoder_backup_fail_over import StreamingConfig
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_constants import AJAStreamParams
 from app.core.error_handling.decorators import handle_errors
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from abc import ABC, abstractmethod
 
 @dataclass

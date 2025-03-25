@@ -13,7 +13,7 @@ from app.core.aja.aja_device import AJADevice
 from app.core.aja.aja_constants import AJAParameters, AJAStreamParams
 from app.core.aja.aja_client import AJAHELOClient
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling.error_logging import ErrorLogger
 from app.core.error_handling.analysis import ErrorAnalyzer
 from app.core.error_handling.performance_monitoring import PerformanceMonitor

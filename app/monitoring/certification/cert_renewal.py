@@ -5,7 +5,7 @@ import time
 from typing import Dict, Tuple
 import requests
 from tenacity import retry, stop_after_attempt, wait_exponential
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling import handle_errors
 
 logger = logging.getLogger(__name__)

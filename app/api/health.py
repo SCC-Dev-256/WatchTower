@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from app.monitoring.health_check import HealthCheckService
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import error_handler
 
 health_bp = Blueprint('health', __name__)

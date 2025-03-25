@@ -1,5 +1,5 @@
 from app.core.security.rbac import roles_required
-from app.core.auth import require_api_key
+from WatchTower.app.core.auth.auth import require_api_key
 from app.core.error_handling.decorators import handle_errors
 
 class MetricsService:

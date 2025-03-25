@@ -1,7 +1,7 @@
 from typing import Dict, Optional
 from app.core.base_service import BaseService
 from app.core.error_handling.errors.exceptions import EncoderStreamError
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors   
 from app.services.encoder_service import EncoderService
 

@@ -11,7 +11,7 @@ from app.core.database.models.encoder import EncoderMetrics
 from app.core.database.models.notification_model import NotificationSettings, NotificationRule
 from app.core.database.models.api_key_management import APIKey
 from app.core.database.models.log_entry import LogEntry
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
 from app.core.metrics.metrics_analyzer import MetricsAnalyzer
 from app.services.websocket.websocket_security import WebSocketSecurity

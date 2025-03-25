@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify, request
 from app.core.error_handling import handle_errors
-from app.core.auth import require_api_key
+from WatchTower.app.core.auth.auth import require_api_key
 from app.core.security.rbac import roles_required
 from app.core.metrics.metrics_service import MetricsService
 

@@ -15,6 +15,8 @@ from app.core.error_handling.performance_monitoring import PerformanceMonitor
 from app.core.error_handling.helo_error_tracking import ErrorTracking
 from app.core.error_handling.handlers import ErrorHandler
 from app.core.monitoring.system_monitor import MonitoringSystem
+from app.core.live_transcription.handler_whisper_online import LiveCaptioningService
+from app.core.aja.client import AJAHELOClient
 
 
 class EncoderService(BaseService):
@@ -296,3 +298,70 @@ class EncoderService(BaseService):
         # Use the new monitoring system
         status = await self.monitoring_system.monitor_encoder(encoder_id)
         return status
+
+    async def start_transcription(self, encoder_id: str) -> Dict:
+        """Start transcription for an encoder"""
+        encoder = await self._get_encoder_or_error(encoder_id)
+        
+        try:
+            # Use existing LiveCaptioningService directly
+            await self.monitoring_system.start_background_task(
+                self._run_transcription(encoder),
+                f"transcription_{encoder_id}"
+            )
+            
+            # Update encoder status
+            await self._update_transcription_status(encoder, True)
+            return {"status": "started", "encoder_id": encoder_id}
+        except Exception as e:
+            raise EncoderError(f"Failed to start transcription: {str(e)}", 
+                              encoder_id=encoder_id, 
+                              error_type="transcription_start")
+
+    async def _run_transcription(self, encoder):
+        """Use existing LiveCaptioningService implementation"""
+        from app.core.live_transcription.handler_whisper_online import (
+            LiveCaptioningService, StreamConfig
+        )
+        
+        service = LiveCaptioningService(
+            config=StreamConfig(
+                ip_address=encoder.ip_address,
+                stream_url=encoder.stream_url
+            )
+        )
+        return await service.process_stream()
+
+    async def stop_transcription(self, encoder_id: str) -> Dict:
+        """Stop transcription for an encoder"""
+        encoder = await self._get_encoder_or_error(encoder_id)
+        
+        try:
+            # Stop background task
+            self.monitoring_system.stop_background_task(f"transcription_{encoder_id}")
+            
+            # Update encoder status
+            encoder.transcription_active = False
+            await db.session.commit()
+            
+            return {
+                "status": "stopped",
+                "encoder_id": encoder_id
+            }
+        except Exception as e:
+            raise EncoderError(
+                f"Failed to stop transcription: {str(e)}",
+                encoder_id=encoder_id,
+                error_type="transcription_stop"
+            )
+
+    async def get_transcription_status(self, encoder_id: str) -> Dict:
+        """Get transcription status for an encoder"""
+        encoder = await self._get_encoder_or_error(encoder_id)
+        
+        return {
+            "encoder_id": encoder_id,
+            "transcription_active": encoder.transcription_active,
+            "last_transcription_error": encoder.last_transcription_error,
+            "transcription_start_time": encoder.transcription_start_time
+        }

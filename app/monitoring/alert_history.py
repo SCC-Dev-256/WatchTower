@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Dict, List
 import sqlite3
 import json
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling import handle_errors
 
 class AlertHistory:

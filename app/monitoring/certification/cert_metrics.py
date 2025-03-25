@@ -1,7 +1,7 @@
 from prometheus_client import Gauge, Counter
 import time
 from .cert_monitor import CertificateInfo
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling import handle_errors
 
 

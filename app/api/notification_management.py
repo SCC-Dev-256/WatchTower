@@ -2,7 +2,7 @@ from app.core.database import db
 from flask import Blueprint, jsonify, request, render_template
 from app.core.database.models.notification_model import NotificationRule, NotificationSettings
 from app.services.notification_service import NotificationService
-from app.core.auth import require_api_key, roles_required, error_handler
+from WatchTower.app.core.auth.auth import require_api_key, roles_required, error_handler
 from pydantic import BaseModel, ValidationError, constr, conlist
 from typing import List
 

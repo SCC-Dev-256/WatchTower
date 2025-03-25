@@ -10,7 +10,7 @@ from app.core.aja.aja_constants import ReplicatorCommands, MediaState, AJAParame
 from app.core.aja.aja_helo_parameter_service import AJAParameterManager
 from app.core.aja.aja_remediation_service import AJARemediationService
 import asyncio
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
 
 class EncoderManager(BaseMetricsService):

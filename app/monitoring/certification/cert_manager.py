@@ -3,7 +3,7 @@ import logging
 from .cert_monitor import CertificateMonitor, CertificateInfo
 from .cert_renewal import CertificateRenewal
 from .cert_metrics import CertificateMetrics
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling import handle_errors
 
 logger = logging.getLogger(__name__)

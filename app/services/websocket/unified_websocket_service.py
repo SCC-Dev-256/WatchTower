@@ -7,7 +7,7 @@ from collections import defaultdict
 from app.core.auditing_log import setup_logging
 from app.services.websocket.websocket_auth import WebSocketAuthenticator
 from app.core.config.websocket_config import Config
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
 from app.services.websocket.websocket_security import WebSocketSecurity
 from app.services.websocket.websocket_rate_limiter import WebSocketRateLimiter

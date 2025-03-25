@@ -1,6 +1,6 @@
 from typing import Dict
 from app.core.connection.helo_pool_manager import HeloPoolManager
-from app.core.auth import require_api_key, roles_required
+from WatchTower.app.core.auth.auth import require_api_key, roles_required
 from app.core.error_handling.decorators import handle_errors
 
 
